@@ -1,4 +1,4 @@
-# pip-inside
+# pip_inside
 
 Install packages using `pip` from inside a python console/interpreter:
 
