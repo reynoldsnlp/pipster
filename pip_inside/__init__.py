@@ -36,7 +36,8 @@ def install(*args, **kwds):
     >>> install(*'-r requirements.txt'.split())
 
     $ pip install --no-index --find-links=/local/dir/ some_pkg
-    >>> install('--no-index', 'some_pkg', find-links='/local/dir/')
+    # Note the use of '_' in the following keyword example.
+    >>> install('--no-index', 'some_pkg', find_links='/local/dir/')
     >>> install('--no-index', '--find-links=/local/dir/', 'some_pkg')
     >>> install(*'--no-index --find-links=/local/dir/ some_pkg'.split())
 
