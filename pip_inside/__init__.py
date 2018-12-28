@@ -28,16 +28,17 @@ def install(*args, **kwds):
     >>> install('--user', '--upgrade', 'some_pkg')
     >>> install(*'--user --upgrade some_pkg'.split())
 
+    If preferred, keyword-value arguments can also be used:
+
     $ pip install -r requirements.txt
+    >>> install(r='requirements.txt')
     >>> install('-r', 'requirements.txt')
     >>> install(*'-r requirements.txt'.split())
 
-    If preferred, keyword-value arguments can also be used:
-
     $ pip install --no-index --find-links=/local/dir/ some_pkg
+    >>> install('--no-index', 'some_pkg', find-links='/local/dir/')
     >>> install('--no-index', '--find-links=/local/dir/', 'some_pkg')
     >>> install(*'--no-index --find-links=/local/dir/ some_pkg'.split())
-    >>> install('--no-index', 'some_pkg', find-links='/local/dir/')
 
     """
     if len(args) == 1 and args[0].startswith('pip install '):
