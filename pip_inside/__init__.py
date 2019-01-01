@@ -13,10 +13,6 @@ except ModuleNotFoundError:
     raise ModuleNotFoundError('Please install pip for the current '
                               'interpreter: (%s).' % sys.executable)
 
-# TODO(RJR) https://github.com/pypa/pip/issues/5069#issue-305765776
-# if Pipfile or Pipfile.lock is seen, emit a warning to stderr about it being bypassed (such a
-# warning could potentially be added to pip by default regardless of how it's invoked)
-
 
 def install(*args, **kwargs):
     """Install packages into the current environment.
@@ -56,8 +52,6 @@ def install(*args, **kwargs):
         cli_args = shlex.split(args[0])
     else:
         cli_args = ['pip', 'install']
-        # TODO(RJR) https://github.com/pypa/pip/issues/5069#issuecomment-450605456
-        # add keyw
         for k, v in kwargs.items():
             if len(k) == 1:  # short flag
                 cli_args.append("-" + k)
@@ -72,15 +66,6 @@ def install(*args, **kwargs):
     opt_dict, target_names = install_cmd.parse_args(cli_args)
     assert target_names[:2] == ['pip', 'install']
     target_names = set(target_names[2:])
-
-# TODO(RJR) redo already_loaded using __spec__.origin ??
-# https://github.com/pypa/pip/issues/5069#issue-305765776
-# after the installation operation completes, read the RECORD entries for any just installed
-# modules, and compare them to __spec__.origin and
-# importlib.util.source_from_cache(__spec__.origin__) for all of the modules in sys.modules.values()
-# and emit a warning to stderr suggesting a Python session restart if any of the just installed
-# files is already loaded in the module cache
-
     already_loaded = {name: module for name, module in sys.modules.items() if name in target_names}
     print('Trying  ', ' '.join(cli_args), '  ...', '(', ', '.join(target_names), ')')
     result = run([sys.executable, "-m", *cli_args], stdout=PIPE, stderr=PIPE)
