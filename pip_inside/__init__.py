@@ -1,6 +1,7 @@
 from pprint import pprint
 import re
 import shlex
+import six
 from subprocess import PIPE
 from subprocess import run
 import sys
@@ -60,11 +61,11 @@ def install(*args, **kwargs):
         for k, v in kwargs.items():
             if len(k) == 1:  # short flag
                 cli_args.append("-" + k)
-                if v is not True:  # True signals that the flag is just a boolean
+                if isinstance(v, six.string_types):  # Non-string = boolean
                     cli_args.append(v)
             else:  # long flag
                 cli_args.append("--" + k.replace('_', '-'))
-                if v is not True:  # True signals that the flag is just a boolean
+                if isinstance(v, six.string_types):  # Non-string = boolean
                     cli_args.append(v)
         cli_args += args
     # use pip internals to isolate package names
