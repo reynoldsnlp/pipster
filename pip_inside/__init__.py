@@ -64,13 +64,19 @@ def install(*args, **kwargs):
     else:
         cli_args = ['pip', 'install']
         for k, v in kwargs.items():
-            if len(k) == 1:  # short flag
-                cli_args.append("-" + k)
-                if isinstance(v, six.string_types):  # Non-string = boolean
-                    cli_args.append(v)
-            else:  # long flag
-                cli_args.append("--" + k.replace('_', '-'))
-                if isinstance(v, six.string_types):  # Non-string = boolean
+            # When the arg value is a string, both it and the option are appended to the CLI args
+            # Otherwise we assume the value indicates whether or not to include a boolean flag
+            append_value = isinstance(v, six.string_types)
+            if append_value and not v:
+                raise ValueError("Empty string passed as value for option {}".format(k))
+            append_option = append_value or v
+            if append_option:
+                if len(k) == 1:  # short flag
+                    option = "-" + k
+                else:  # long flag
+                    option = "--" + k.replace('_', '-')
+                cli_args.append(option)
+                if append_value:
                     cli_args.append(v)
         cli_args += args
     # use pip internals to isolate package names
