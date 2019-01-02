@@ -64,7 +64,8 @@ def install(*args, **kwargs):
     else:
         cli_args = ['pip', 'install']
         # Keyword arguments are translated to CLI options
-        for k, v in kwargs.items():
+        for raw_k, v in kwargs.items():
+            k = raw_k.replace('_', '-') # Translate Python identifiers to CLI long option names
             append_value = isinstance(v, six.string_types)
             if append_value
                 # When the arg value is a string, both it and the option are appended to the CLI args
@@ -75,13 +76,23 @@ def install(*args, **kwargs):
                 # Otherwise we assume the value indicates whether or not to include a boolean flag and
                 # handle it as a tri-state setting (None->omit, true->include, false->include negated)
                 append_option = v is not None
+                if k.startswith("no-"):
+                    # Instead of accepting both `some-option=True` and `no-some-option=False`, we
+                    # disallow the second spelling, but suggest the former when the latter is tried
+                    raw_suffix = raw_k[3:]
+                    msg_template = "Rather than '{}={!r}', try '{{}}={{!r}}'".format(raw_k, v)
+                    if append_option:
+                        translation_suggestion = msg_template.format(raw_suffix, not v)
+                    else:
+                        translation_suggestion = msg_template.format(raw_suffix, None)
+                    raise ValueError(translation_suggestion)                   
                 if append_option and not v:
                     k = "no-" + k
             if append_option:
                 if len(k) == 1:  # short flag
                     option = "-" + k
                 else:  # long flag
-                    option = "--" + k.replace('_', '-')
+                    option = "--" + k
                 cli_args.append(option)
                 if append_value:
                     cli_args.append(v)
