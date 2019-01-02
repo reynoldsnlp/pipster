@@ -1,10 +1,12 @@
+from glob import glob
+import os
 from pprint import pprint
-import re
 import shlex
 import six
 from subprocess import PIPE
 from subprocess import run
 import sys
+from warnings import warn
 
 try:
     from pip._internal.commands import InstallCommand
@@ -12,6 +14,15 @@ try:
 except ModuleNotFoundError:
     raise ModuleNotFoundError('Please install pip for the current '
                               'interpreter: (%s).' % sys.executable)
+
+pipfiles = []
+for i in range(4):  # 4 is completely arbitrary here
+    pipfiles.extend(glob(('..' + os.sep) * i + 'Pipfile'))
+if pipfiles:
+    pipfiles = [os.path.abspath(f) for f in pipfiles]
+    msg = ('Warning: the following Pipfiles will be bypassed by '
+           'pip_inside.install:\n\t' + '\n\t'.join(pipfiles))
+    warn(msg, stacklevel=2)
 
 
 def install(*args, **kwargs):
@@ -63,15 +74,15 @@ def install(*args, **kwargs):
                     cli_args.append(v)
         cli_args += args
     # use pip internals to isolate package names
-    opt_dict, target_names = install_cmd.parse_args(cli_args)
-    assert target_names[:2] == ['pip', 'install']
-    target_names = set(target_names[2:])
-    already_loaded = {name: module for name, module in sys.modules.items() if name in target_names}
-    print('Trying  ', ' '.join(cli_args), '  ...', '(', ', '.join(target_names), ')')
+    opt_dict, targets = install_cmd.parse_args(cli_args)
+    assert targets[:2] == ['pip', 'install']
+    targets = set(targets[2:])
+    already_loaded = {n: mod for n, mod in sys.modules.items() if n in targets}
+    print('Trying  ', ' '.join(cli_args), '  ...')
     result = run([sys.executable, "-m", *cli_args], stdout=PIPE, stderr=PIPE)
     print(result)
 
     if result.returncode == 0 and already_loaded:
-        print('The following modules were already loaded. You may need to restart python to see '
-              'changes: ')
+        print('The following modules were already loaded. You may need to '
+              'restart python to see changes: ')
         pprint(already_loaded)
