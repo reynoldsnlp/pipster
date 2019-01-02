@@ -21,6 +21,7 @@ import sys
 cmd = 'pip install --user git+https://github.com/reynoldsnlp/pip_inside'
 cmd = [sys.executable,  '-m'] + cmd.split()
 subprocess.check_call(cmd)
+```
 
 ... or from `bash`:
 
