@@ -63,13 +63,20 @@ def install(*args, **kwargs):
         cli_args = shlex.split(args[0])
     else:
         cli_args = ['pip', 'install']
+        # Keyword arguments are translated to CLI options
         for k, v in kwargs.items():
-            # When the arg value is a string, both it and the option are appended to the CLI args
-            # Otherwise we assume the value indicates whether or not to include a boolean flag
             append_value = isinstance(v, six.string_types)
-            if append_value and not v:
-                raise ValueError("Empty string passed as value for option {}".format(k))
-            append_option = append_value or v
+            if append_value
+                # When the arg value is a string, both it and the option are appended to the CLI args
+                append_option=True
+                if not v:
+                    raise ValueError("Empty string passed as value for option {}".format(k))
+            else:
+                # Otherwise we assume the value indicates whether or not to include a boolean flag and
+                # handle it as a tri-state setting (None->omit, true->include, false->include negated)
+                append_option = v is not None
+                if append_option and not v:
+                    k = "no-" + k
             if append_option:
                 if len(k) == 1:  # short flag
                     option = "-" + k
@@ -78,6 +85,7 @@ def install(*args, **kwargs):
                 cli_args.append(option)
                 if append_value:
                     cli_args.append(v)
+        # Positional arguments are passed directly as CLI arguments
         cli_args += args
     # use pip internals to isolate package names
     opt_dict, targets = install_cmd.parse_args(cli_args)
