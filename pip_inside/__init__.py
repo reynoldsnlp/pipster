@@ -3,8 +3,7 @@ import os
 from pprint import pprint
 import shlex
 import six
-from subprocess import PIPE
-from subprocess import run
+from subprocess import check_call
 import sys
 from warnings import warn
 
@@ -79,10 +78,10 @@ def install(*args, **kwargs):
     targets = set(targets[2:])
     already_loaded = {n: mod for n, mod in sys.modules.items() if n in targets}
     print('Trying  ', ' '.join(cli_args), '  ...')
-    result = run([sys.executable, "-m", *cli_args], stdout=PIPE, stderr=PIPE)
+    result = check_call([sys.executable, "-m", *cli_args])
     print(result)
 
-    if result.returncode == 0 and already_loaded:
+    if result == 0 and already_loaded:
         print('The following modules were already loaded. You may need to '
               'restart python to see changes: ')
         pprint(already_loaded)
