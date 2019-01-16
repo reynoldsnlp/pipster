@@ -65,27 +65,29 @@ def install(*args, **kwargs):
         cli_args = ['pip', 'install']
         # Keyword arguments are translated to CLI options
         for raw_k, v in kwargs.items():
-            k = raw_k.replace('_', '-') # Translate Python identifiers to CLI long option names
+            k = raw_k.replace('_', '-')  # Python identifiers -> CLI long names
             append_value = isinstance(v, six.string_types)
-            if append_value
-                # When the arg value is a string, both it and the option are appended to the CLI args
-                append_option=True
+            if append_value:
+                # When arg value is str, append both it and option to CLI args
+                append_option = True
                 if not v:
-                    raise ValueError("Empty string passed as value for option {}".format(k))
+                    raise ValueError("Empty string passed as value for option "
+                                     "{}".format(k))
             else:
-                # Otherwise we assume the value indicates whether or not to include a boolean flag and
-                # handle it as a tri-state setting (None->omit, true->include, false->include negated)
+                # assume the value indicates whether to include a boolean flag.
+                # None->omit, true->include, false->include negated
                 append_option = v is not None
                 if k.startswith("no-"):
-                    # Instead of accepting both `some-option=True` and `no-some-option=False`, we
-                    # disallow the second spelling, but suggest the former when the latter is tried
+                    # suggest `some-option=True` instead of
+                    # `no-some-option=False`
                     raw_suffix = raw_k[3:]
-                    msg_template = "Rather than '{}={!r}', try '{{}}={{!r}}'".format(raw_k, v)
+                    msg_template = ("Rather than '{}={!r}', "
+                                    "try '{{}}={{!r}}'".format(raw_k, v))
                     if append_option:
-                        translation_suggestion = msg_template.format(raw_suffix, not v)
+                        suggestion = msg_template.format(raw_suffix, not v)
                     else:
-                        translation_suggestion = msg_template.format(raw_suffix, None)
-                    raise ValueError(translation_suggestion)                   
+                        suggestion = msg_template.format(raw_suffix, None)
+                    raise ValueError(suggestion)
                 if append_option and not v:
                     k = "no-" + k
             if append_option:
