@@ -1,0 +1,3 @@
+.tox
+__pycache__
+pip_inside.egg-info

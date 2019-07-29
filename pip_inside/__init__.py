@@ -59,8 +59,25 @@ def install(*args, **kwargs):
     >>> install(*'--no-index --find-links=/local/dir/ some_pkg'.split())
 
     """
+    cli_args = _build_install_cmd(args, kwargs)
+    # use pip internals to isolate package names
+    opt_dict, targets = install_cmd.parse_args(cli_args)
+    assert targets[:2] == ['pip', 'install']
+    targets = set(targets[2:])
+    already_loaded = {n: mod for n, mod in sys.modules.items() if n in targets}
+    print('Trying  ', ' '.join(cli_args), '  ...')
+    result = run([sys.executable, "-m", *cli_args], stdout=PIPE, stderr=PIPE)
+    print(result, sys.stderr)  # TODO DELETE ME
+
+    if result.returncode == 0 and already_loaded:
+        print('The following modules were already loaded. You may need to '
+              'restart python to see changes: ')
+        pprint(already_loaded)
+
+
+def _build_install_cmd(*args, **kwargs):
     if len(args) == 1 and args[0].startswith('pip install '):
-        cli_args = shlex.split(args[0])
+        return shlex.split(args[0])
     else:
         cli_args = ['pip', 'install']
         for k, v in kwargs.items():
@@ -73,16 +90,4 @@ def install(*args, **kwargs):
                 if isinstance(v, six.string_types):  # Non-string = boolean
                     cli_args.append(v)
         cli_args += args
-    # use pip internals to isolate package names
-    opt_dict, targets = install_cmd.parse_args(cli_args)
-    assert targets[:2] == ['pip', 'install']
-    targets = set(targets[2:])
-    already_loaded = {n: mod for n, mod in sys.modules.items() if n in targets}
-    print('Trying  ', ' '.join(cli_args), '  ...')
-    result = run([sys.executable, "-m", *cli_args], stdout=PIPE, stderr=PIPE)
-    print(result)
-
-    if result.returncode == 0 and already_loaded:
-        print('The following modules were already loaded. You may need to '
-              'restart python to see changes: ')
-        pprint(already_loaded)
+    return cli_args
