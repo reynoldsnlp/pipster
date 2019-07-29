@@ -52,11 +52,11 @@ def install(*args, **kwargs):
     >>> install('-r', 'requirements.txt')
     >>> install(*'-r requirements.txt'.split())
 
-    $ pip install --no-index --find-links=/local/dir/ some_pkg
+    $ pip install --no-index --find-links /local/dir/ some_pkg
     # Note the use of '_' in the following keyword example.
     >>> install('--no-index', 'some_pkg', find_links='/local/dir/')
-    >>> install('--no-index', '--find-links=/local/dir/', 'some_pkg')
-    >>> install(*'--no-index --find-links=/local/dir/ some_pkg'.split())
+    >>> install('--no-index', '--find-links', '/local/dir/', 'some_pkg')
+    >>> install(*'--no-index --find-links /local/dir/ some_pkg'.split())
 
     """
     cli_args = _build_install_cmd(args, kwargs)
