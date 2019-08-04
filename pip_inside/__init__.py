@@ -3,8 +3,7 @@ import os
 from pprint import pprint
 import shlex
 import six
-from subprocess import PIPE
-from subprocess import run
+from subprocess import check_call
 import sys
 from warnings import warn
 
@@ -67,7 +66,7 @@ def install(*args, **kwargs):
     already_loaded = {n: mod for n, mod in sys.modules.items() if n in targets}
     print('Trying  ', ' '.join(cli_args), '  ...')
     result = run([sys.executable, "-m", *cli_args], stdout=PIPE, stderr=PIPE)
-    print(result, sys.stderr)  # TODO DELETE ME
+    print(result, file=sys.stderr)  # TODO DELETE ME
 
     if result.returncode == 0 and already_loaded:
         print('The following modules were already loaded. You may need to '
@@ -80,14 +79,41 @@ def _build_install_cmd(*args, **kwargs):
         return shlex.split(args[0])
     else:
         cli_args = ['pip', 'install']
-        for k, v in kwargs.items():
-            if len(k) == 1:  # short flag
-                cli_args.append("-" + k)
-                if isinstance(v, six.string_types):  # Non-string = boolean
+        # Keyword arguments are translated to CLI options
+        for raw_k, v in kwargs.items():
+            k = raw_k.replace('_', '-')  # Python identifiers -> CLI long names
+            append_value = isinstance(v, six.string_types)
+            if append_value:
+                # When arg value is str, append both it and option to CLI args
+                append_option = True
+                if not v:
+                    raise ValueError("Empty string passed as value for option "
+                                     "{}".format(k))
+            else:
+                # assume the value indicates whether to include a boolean flag.
+                # None->omit, true->include, false->include negated
+                append_option = v is not None
+                if k.startswith("no-"):
+                    # suggest `some-option=True` instead of
+                    # `no-some-option=False`
+                    raw_suffix = raw_k[3:]
+                    msg_template = ("Rather than '{}={!r}', "
+                                    "try '{{}}={{!r}}'".format(raw_k, v))
+                    if append_option:
+                        suggestion = msg_template.format(raw_suffix, not v)
+                    else:
+                        suggestion = msg_template.format(raw_suffix, None)
+                    raise ValueError(suggestion)
+                if append_option and not v:
+                    k = "no-" + k
+            if append_option:
+                if len(k) == 1:  # short flag
+                    option = "-" + k
+                else:  # long flag
+                    option = "--" + k
+                cli_args.append(option)
+                if append_value:
                     cli_args.append(v)
-            else:  # long flag
-                cli_args.append("--" + k.replace('_', '-'))
-                if isinstance(v, six.string_types):  # Non-string = boolean
-                    cli_args.append(v)
+        # Positional arguments are passed directly as CLI arguments
         cli_args += args
     return cli_args
