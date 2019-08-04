@@ -65,7 +65,8 @@ def install(*args, **kwargs):
     targets = set(targets[2:])
     already_loaded = {n: mod for n, mod in sys.modules.items() if n in targets}
     print('Trying  ', ' '.join(cli_args), '  ...')
-    result = run([sys.executable, "-m", *cli_args], stdout=PIPE, stderr=PIPE)
+    cli_cmd = [sys.executable, "-m"] + cli_args
+    result = run(cli_cmd, stdout=PIPE, stderr=PIPE)
     print(result, file=sys.stderr)  # TODO DELETE ME
 
     if result.returncode == 0 and already_loaded:
