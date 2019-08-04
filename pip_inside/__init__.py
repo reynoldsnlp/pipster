@@ -51,15 +51,32 @@ def install(*args, **kwargs):
     >>> install('-r', 'requirements.txt')
     >>> install(*'-r requirements.txt'.split())
 
-    $ pip install --no-index --find-links=/local/dir/ some_pkg
+    $ pip install --no-index --find-links /local/dir/ some_pkg
     # Note the use of '_' in the following keyword example.
     >>> install('--no-index', 'some_pkg', find_links='/local/dir/')
-    >>> install('--no-index', '--find-links=/local/dir/', 'some_pkg')
-    >>> install(*'--no-index --find-links=/local/dir/ some_pkg'.split())
+    >>> install('--no-index', '--find-links', '/local/dir/', 'some_pkg')
+    >>> install(*'--no-index --find-links /local/dir/ some_pkg'.split())
 
     """
+    cli_args = _build_install_cmd(args, kwargs)
+    # use pip internals to isolate package names
+    opt_dict, targets = install_cmd.parse_args(cli_args)
+    assert targets[:2] == ['pip', 'install']
+    targets = set(targets[2:])
+    already_loaded = {n: mod for n, mod in sys.modules.items() if n in targets}
+    print('Trying  ', ' '.join(cli_args), '  ...')
+    result = run([sys.executable, "-m", *cli_args], stdout=PIPE, stderr=PIPE)
+    print(result, file=sys.stderr)  # TODO DELETE ME
+
+    if result.returncode == 0 and already_loaded:
+        print('The following modules were already loaded. You may need to '
+              'restart python to see changes: ')
+        pprint(already_loaded)
+
+
+def _build_install_cmd(*args, **kwargs):
     if len(args) == 1 and args[0].startswith('pip install '):
-        cli_args = shlex.split(args[0])
+        return shlex.split(args[0])
     else:
         cli_args = ['pip', 'install']
         # Keyword arguments are translated to CLI options
@@ -99,16 +116,4 @@ def install(*args, **kwargs):
                     cli_args.append(v)
         # Positional arguments are passed directly as CLI arguments
         cli_args += args
-    # use pip internals to isolate package names
-    opt_dict, targets = install_cmd.parse_args(cli_args)
-    assert targets[:2] == ['pip', 'install']
-    targets = set(targets[2:])
-    already_loaded = {n: mod for n, mod in sys.modules.items() if n in targets}
-    print('Trying  ', ' '.join(cli_args), '  ...')
-    result = check_call([sys.executable, "-m", *cli_args])
-    print(result)
-
-    if result == 0 and already_loaded:
-        print('The following modules were already loaded. You may need to '
-              'restart python to see changes: ')
-        pprint(already_loaded)
+    return cli_args
