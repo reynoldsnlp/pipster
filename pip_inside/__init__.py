@@ -58,21 +58,21 @@ def install(*args, **kwargs):
     >>> install(*'--no-index --find-links /local/dir/ some_pkg'.split())
 
     """
-    cli_args = _build_install_cmd(args, kwargs)
+    cli_args = _build_install_cmd(*args, **kwargs)
     # use pip internals to isolate package names
-    opt_dict, targets = install_cmd.parse_args(cli_args)
+    _, targets = install_cmd.parse_args(cli_args)  # _ is a dict of options
     assert targets[:2] == ['pip', 'install']
     targets = set(targets[2:])
     already_loaded = {n: mod for n, mod in sys.modules.items() if n in targets}
     print('Trying  ', ' '.join(cli_args), '  ...')
     cli_cmd = [sys.executable, "-m"] + cli_args
-    result = run(cli_cmd, stdout=PIPE, stderr=PIPE)
-    print(result, file=sys.stderr)  # TODO DELETE ME
+    result = check_call(cli_cmd)
 
-    if result.returncode == 0 and already_loaded:
+    if result == 0 and already_loaded:
         print('The following modules were already loaded. You may need to '
               'restart python to see changes: ')
         pprint(already_loaded)
+    return result
 
 
 def _build_install_cmd(*args, **kwargs):

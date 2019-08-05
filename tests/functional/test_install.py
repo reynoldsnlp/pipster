@@ -1,4 +1,5 @@
 from pip_inside import _build_install_cmd
+from pip_inside import install
 
 """
 TODO(RJR) implement the following tests
@@ -35,3 +36,16 @@ def test_build_install_cmd_underscores():
             == ['pip', 'install', '--find-links', '/local/dir/', 'some_pkg'])
     assert (_build_install_cmd('some_pkg', find_links='/local/dir/')
             == ['pip', 'install', '--find-links', '/local/dir/', 'some_pkg'])
+
+
+def test_install_simplewheel():
+    wheel_path = 'tests/data/packages/'
+    wheel1 = wheel_path + 'simplewheel-1.0-py2.py3-none-any.whl'
+    wheel2 = wheel_path + 'simplewheel-2.0-py2.py3-none-any.whl'
+    assert install(wheel1) == 0
+    assert install(wheel2) == 0
+    # the following tests were suggested by @ncoghlan
+    # install("pip install --target /tmp//target_dir_without_spaces ''")
+    # install("pip install --target '/tmp//target dir with spaces' ''")
+    # install(wheel1, target="/tmp//")
+    # install(wheel2, target="/tmp//", upgrade=True)
