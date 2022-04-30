@@ -2,7 +2,6 @@ from glob import glob
 import os
 from pprint import pprint
 import shlex
-import six
 from subprocess import check_call
 import sys
 from warnings import warn
@@ -13,6 +12,9 @@ try:
 except ModuleNotFoundError:
     raise ModuleNotFoundError('Please install pip for the current '
                               'interpreter: (%s).' % sys.executable)
+
+from ._version import version as __version__
+
 
 pipfiles = []
 for i in range(4):  # 4 is completely arbitrary here
@@ -83,7 +85,7 @@ def _build_install_cmd(*args, **kwargs):
         # Keyword arguments are translated to CLI options
         for raw_k, v in kwargs.items():
             k = raw_k.replace('_', '-')  # Python identifiers -> CLI long names
-            append_value = isinstance(v, six.string_types)
+            append_value = isinstance(v, str)
             if append_value:
                 # When arg value is str, append both it and option to CLI args
                 append_option = True
