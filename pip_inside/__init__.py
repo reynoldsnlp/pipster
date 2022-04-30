@@ -8,8 +8,8 @@ import sys
 from warnings import warn
 
 try:
-    from pip._internal.commands import InstallCommand
-    install_cmd = InstallCommand()
+    from pip._internal.commands.install import InstallCommand
+    install_cmd = InstallCommand(name='dummy', summary='Only for parse_args.')
 except ModuleNotFoundError:
     raise ModuleNotFoundError('Please install pip for the current '
                               'interpreter: (%s).' % sys.executable)
