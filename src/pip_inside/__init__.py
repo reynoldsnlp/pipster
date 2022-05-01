@@ -1,6 +1,5 @@
 from glob import glob
 import os
-from pprint import pprint
 import shlex
 from subprocess import check_call
 import sys
@@ -8,12 +7,14 @@ from warnings import warn
 
 try:
     from pip._internal.commands.install import InstallCommand
+    from pip._vendor.distlib.database import DistributionPath
     install_cmd = InstallCommand(name='dummy', summary='Only for parse_args.')
+    dist_path = DistributionPath()
 except ModuleNotFoundError:
     raise ModuleNotFoundError('Please install pip for the current '
                               'interpreter: (%s).' % sys.executable)
 
-from ._version import version as __version__
+from ._version import version as __version__  # noqa: F401
 
 
 pipfiles = []
@@ -64,16 +65,29 @@ def install(*args, **kwargs):
     # use pip internals to isolate package names
     _, targets = install_cmd.parse_args(cli_args)  # _ is a dict of options
     assert targets[:2] == ['pip', 'install']
-    targets = set(targets[2:])
-    already_loaded = {n: mod for n, mod in sys.modules.items() if n in targets}
-    print('Trying  ', ' '.join(cli_args), '  ...')
+    target_providers = [d.name
+                        for t in targets[2:]
+                        for d in dist_path.get_distributions()
+                        if bytes(t, 'utf8') in d.modules]
+    target_origins = set()
+    for t in target_providers:
+        if t in sys.modules:
+            target_origins.add(sys.modules[t].__spec__.origin)
+    print('target_origins', target_origins, file=sys.stderr)
+    dists = [dist_path.get_distribution(d) for d in target_providers]
+    paths = set()
+    for project in dists:
+        if project is not None:
+            for path, _, _ in project.list_installed_files():
+                paths.add(os.path.join(os.path.dirname(project.path), path))
+    already_loaded = target_origins.intersection(paths)
+    print('Trying  ', ' '.join(cli_args), '  ...', file=sys.stderr)
     cli_cmd = [sys.executable, "-m"] + cli_args
     result = check_call(cli_cmd)
 
     if result == 0 and already_loaded:
-        print('The following modules were already loaded. You may need to '
-              'restart python to see changes: ')
-        pprint(already_loaded)
+        warn('WARNING! The following modules were already loaded. Restart '
+             'python to see changes:  ' + repr(already_loaded), UserWarning)
     return result
 
 
