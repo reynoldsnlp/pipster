@@ -2,7 +2,7 @@ from importlib import import_module
 
 import pytest
 
-from pip_inside import _build_install_cmd
+from pip_inside.install import _build_install_cmd
 from pip_inside import install
 
 TEST_PKG = 'realpython-reader'
