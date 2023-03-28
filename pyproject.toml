@@ -1,9 +1,48 @@
 [build-system]
-requires = ["setuptools >= 61.0", "setuptools_scm[toml]>=6.2"]  # EXPERIMENTAL
-build-backend = "setuptools.build_meta"
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
 
-[tool.setuptools_scm]
-write_to = "src/pip_inside/_version.py"
+
+[project]
+name = "pip_inside"
+dynamic = ["version", "urls"]
+description = "pip install from inside your scripts"
+readme = "README.md"
+authors = [
+	{ name = "Robert Reynolds", email = "robert_reynolds@byu.edu" },
+]
+license = { file = "LICENSE" }
+requires_python = ">=3.8"
+dependencies = [
+	"pip",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: OS Independent",
+]
+
+
+[project.optional-dependencies]
+test = [
+  "pytest >=6.0",
+]
+
+
+[tool.hatch]
+version.source = "vcs"
+build.hooks.vcs.version-file = "src/pip_inside/_version.py"
+
+
+[tool.hatch.metadata.hooks.vcs.urls]
+Homepage = "https://github.com/reynoldsnlp/pip_inside"
+"Bug Tracker" = "https://github.com/reynoldsnlp/pip_inside/issues"
+source_archive = "https://github.com/reynoldsnlp/pip_inside/archive/{commit_hash}.zip"
+
+
+[tool.pytest]
+python_files = "tests/functional/*.py"
+
 
 [tool.pytest.ini_options]
 minversion = "6.0"
