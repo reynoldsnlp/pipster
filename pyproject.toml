@@ -29,9 +29,12 @@ test = [
 ]
 
 
-[tool.hatch]
-version.source = "vcs"
-build.hooks.vcs.version-file = "src/pip_inside/_version.py"
+[tool.hatch.version]
+source = "vcs"
+
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/pip_inside/_version.py"
 
 
 [tool.hatch.metadata.hooks.vcs.urls]
