@@ -16,6 +16,7 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.12.1
         env:
+          CIBW_BEFORE_BUILD: pip install -U pip hatch hatchling
           CIBW_TEST_COMMAND: pytest {package}/tests
         with:
           package-dir: .
