@@ -1,15 +1,16 @@
 from glob import glob
 import os
+from pathlib import Path
+import re
 import shlex
-from subprocess import check_call
+import subprocess
 import sys
 from warnings import warn
 
 try:
     from pip._internal.commands.install import InstallCommand
     from pip._vendor.distlib.database import DistributionPath
-    install_cmd = InstallCommand(name='dummy', summary='Only for parse_args.')
-    dist_path = DistributionPath()
+    install_cmd = InstallCommand(name='dummy', summary='Provides parse_args.')
 except ModuleNotFoundError:
     raise ModuleNotFoundError('Please install pip for the current '
                               'interpreter: (%s).' % sys.executable)
@@ -18,13 +19,23 @@ from ._version import version as __version__  # noqa: F401
 
 
 pipfiles = []
-for i in range(4):  # 4 is completely arbitrary here
+for i in range(4):  # TODO: 4 is completely arbitrary here. improve?
     pipfiles.extend(glob(('..' + os.sep) * i + 'Pipfile'))
 if pipfiles:
     pipfiles = [os.path.abspath(f) for f in pipfiles]
     msg = ('Warning: the following Pipfiles will be bypassed by '
            'pip_inside.install:\n\t' + '\n\t'.join(pipfiles))
     warn(msg, stacklevel=2)
+
+
+def _parse_target(target):
+    """Parse install target down to the distribution name."""
+    # TODO: make more robust
+    if target.endswith('.whl'):
+        return Path(target).name.split('-')[0]
+    else:
+        # https://pip.pypa.io/en/stable/reference/requirement-specifiers/
+        return re.search(r'(.+?)(?:[!~<>=]{1,2}.+)?$', target).group(1)
 
 
 def install(*args, **kwargs):
@@ -63,31 +74,35 @@ def install(*args, **kwargs):
     """
     cli_args = _build_install_cmd(*args, **kwargs)
     # use pip internals to isolate package names
-    _, targets = install_cmd.parse_args(cli_args)  # _ is a dict of options
-    assert targets[:2] == ['pip', 'install']
-    target_providers = [d.name
-                        for t in targets[2:]
-                        for d in dist_path.get_distributions()
-                        if bytes(t, 'utf8') in d.modules]
-    target_origins = set()
+    _, req_targets = install_cmd.parse_args(cli_args)
+    assert req_targets[:2] == ['pip', 'install']
+    req_targets = [_parse_target(t) for t in req_targets[2:]]
+    dist_path = DistributionPath(include_egg=True)
+    target_providers = [d.modules
+                        for t in req_targets
+                        for d in dist_path.get_distributions()  # installed
+                        if t == d.name]
+    target_providers = [y for x in target_providers for y in x]  # flatten
+    target_origins = {}
     for t in target_providers:
         if t in sys.modules:
-            target_origins.add(sys.modules[t].__spec__.origin)
-    print('target_origins', target_origins, file=sys.stderr)
-    dists = [dist_path.get_distribution(d) for d in target_providers]
+            target_origins[sys.modules[t].__spec__.origin] = t
+    dist_path = DistributionPath(include_egg=True)
+    dists = [dist_path.get_distribution(t) for t in req_targets]
     paths = set()
-    for project in dists:
-        if project is not None:
-            for path, _, _ in project.list_installed_files():
-                paths.add(os.path.join(os.path.dirname(project.path), path))
-    already_loaded = target_origins.intersection(paths)
+    for dist in dists:
+        if dist is not None:
+            for path, _, _ in dist.list_installed_files():
+                paths.add(os.path.join(os.path.dirname(dist.path), path))
+    already_loaded = paths.intersection(target_origins)
+    already_loaded = [target_origins[origin] for origin in already_loaded]
     print('Trying  ', ' '.join(cli_args), '  ...', file=sys.stderr)
     cli_cmd = [sys.executable, "-m"] + cli_args
-    result = check_call(cli_cmd)
-
-    if result == 0 and already_loaded:
+    result = subprocess.run(cli_cmd, check=True)
+    if result.returncode == 0 and already_loaded:
         warn('WARNING! The following modules were already loaded. Restart '
-             'python to see changes:  ' + repr(already_loaded), UserWarning)
+             f'python to see changes:  {", ".join(already_loaded)}',
+             UserWarning)
     return result
 
 
