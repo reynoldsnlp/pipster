@@ -15,9 +15,6 @@ except ModuleNotFoundError:
     raise ModuleNotFoundError('Please install pip for the current '
                               'interpreter: (%s).' % sys.executable)
 
-from ._version import version as __version__  # noqa: F401
-from .autoinstall import *
-
 __all__ = ['install']
 
 

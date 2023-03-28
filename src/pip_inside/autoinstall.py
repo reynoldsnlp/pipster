@@ -1,22 +1,41 @@
 import ast
 from collections import namedtuple
+import distutils.sysconfig as sysconfig
 import inspect
 from modulefinder import ModuleFinder
+import os
 import re
 import sys
-
-from bs4 import BeautifulSoup as bs  # install beautifulsoup4
-import libcst as cst
-from sklearn.ensemble import RandomForestClassifier  # install scikit-learn
-import requests as r
-import numpy, pandas
 
 from . import install
 __all__ = ['autoinstall']
 
 
+def get_stdlib_module_names():
+    if sys.version_info >= (3, 10):
+        return sys.stdlib_module_names
+    else:
+        stdlib_module_names = set()
+        std_lib = sysconfig.get_python_lib(standard_lib=True)
+
+        for top, dirs, files in os.walk(std_lib):
+            for nm in files:
+                prefix = top[len(std_lib)+1:]
+                if prefix[:13] == 'site-packages':
+                    continue
+                if nm == '__init__.py':
+                    stdlib_module_names.add(top[len(std_lib)+1:].replace(os.path.sep,'.'))
+                elif nm[-3:] == '.py':
+                    stdlib_module_names.add(os.path.join(prefix, nm)[:-3].replace(os.path.sep,'.'))
+                elif nm[-3:] == '.so' and top[-11:] == 'lib-dynload':
+                    stdlib_module_names.add(nm[0:-3])
+        for builtin in sys.builtin_module_names:
+            stdlib_module_names.add(builtin)
+        return stdlib_module_names
+
+
 def _get_deps(path, include_stdlib=False):
-    # TODO: sys.stdlib_module_names is only available in Python 3.10+
+    stdlib_module_names = get_stdlib_module_names()
     with open(path) as f:
         root = ast.parse(f.read(), path)
 
@@ -25,11 +44,11 @@ def _get_deps(path, include_stdlib=False):
         if isinstance(node, ast.Import):
             for n in node.names:
                 mod = n.name.split('.')[0]
-                if include_stdlib or mod not in sys.stdlib_module_names:
+                if include_stdlib or mod not in stdlib_module_names:
                     deps.append(mod)
         elif isinstance(node, ast.ImportFrom):
             mod = node.module.split('.')[0]
-            if include_stdlib or mod not in sys.stdlib_module_names:
+            if include_stdlib or mod not in stdlib_module_names:
                 deps.append(mod)
         else:
             continue
