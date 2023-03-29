@@ -23,6 +23,8 @@ jobs:
       - name: Lint with ruff
         run: |
           ruff --format=github --target-version=py37 .
+      - name: Build a binary wheel and a source tarball
+        run: hatch build
       - name: Test with pytest
         run: |
           pytest
@@ -34,8 +36,6 @@ jobs:
           path: junit/test-results-${{ matrix.python-version }}.xml
         # Use always() to always run this step to publish test results when there are test failures
         if: ${{ always() }}
-      - name: Build a binary wheel and a source tarball
-        run: python -m build --sdist --wheel --outdir dist/
       - name: Publish distribution 📦 to Test PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
