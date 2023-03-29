@@ -29,6 +29,13 @@ test = [
 ]
 
 
+[tool.cibuildwheel]
+before-build = "python -m pip install --upgrade build hatch hatchling && python -m build --version && python -m hatch --version && python -c 'import hatchling.__about__ as a; print(a.__version__)'"
+dependency-versions = "latest"
+build-frontend = "build"  # instead of pip
+test-command = "pytest {package}/tests"
+
+
 [tool.hatch.version]
 source = "vcs"
 
@@ -56,3 +63,5 @@ addopts = "-ra -q"
 testpaths = [
     "tests",
 ]
+
+
