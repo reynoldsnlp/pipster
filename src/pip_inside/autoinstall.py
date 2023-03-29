@@ -60,11 +60,14 @@ def _get_deps(path, include_stdlib=False):
                          and re.search(r'#\s+install\s+', line)]
     dep_pkg_list = []
     for dep in deps:
-        pkgs = [match.group(1).split()
+        pkgs = [m.group(1).split()
                 for line in install_lines
                 if dep in line
-                and (match := re.search(r'#\s+install\s+(.+)$', line))]
-        pkgs = set(pkg for group in pkgs for pkg in group)  # flattened
+                and (m := re.search(r'#\s+install\s+([\s0-9A-Za-z-_.]+)', line))]
+        pkgs = set(pkg
+                   for group in pkgs
+                   for pkg in group
+                   if pkg)  # flatten pkgs
         dep_pkg_list.append((dep, tuple(pkgs) or None))
     return dep_pkg_list
 
