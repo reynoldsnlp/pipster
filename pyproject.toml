@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pip_inside"
-dynamic = ["version", "urls"]
+dynamic = ["version"]
 description = "pip install from inside your scripts"
 readme = "README.md"
 authors = [
