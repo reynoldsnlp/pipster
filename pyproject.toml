@@ -53,7 +53,7 @@ minversion = "6.0"
 pythonpath = [
   "src"
 ]
-addopts = "-ra -q"
+addopts = "-ra -q --ignore=tests/data"
 testpaths = [
     "tests",
 ]
