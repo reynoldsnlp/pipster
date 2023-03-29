@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
 
     steps:
       - uses: actions/checkout@v3
@@ -22,7 +22,7 @@ jobs:
           pip install pytest ruff
       - name: Lint with ruff
         run: |
-          ruff --format=github --target-version=py37 .
+          ruff --format=github .
       - name: Build a binary wheel and a source tarball
         run: hatch build
       - name: Test with pytest
