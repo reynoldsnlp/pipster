@@ -1,4 +1,6 @@
+.coverage
 .tox
 __pycache__
+coverage.xml
+junit/
 pip_inside.egg-info
-src/pip_inside/_version.py

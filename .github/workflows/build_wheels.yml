@@ -18,7 +18,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade hatch hatch-vcs pip
+          python -m pip install --upgrade hatch pip
           pip install pytest pytest-cov ruff
       - name: Lint with ruff
         run: |
