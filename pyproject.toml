@@ -26,6 +26,7 @@ classifiers = [
 [project.optional-dependencies]
 test = [
   "pytest >=6.0",
+  "pytest-cov >=4.0",
 ]
 
 
