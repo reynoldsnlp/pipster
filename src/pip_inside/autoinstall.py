@@ -1,8 +1,6 @@
 import ast
-from collections import namedtuple
 import distutils.sysconfig as sysconfig
 import inspect
-from modulefinder import ModuleFinder
 import os
 import re
 import sys
@@ -26,7 +24,7 @@ def get_stdlib_module_names():
                 if nm == '__init__.py':
                     stdlib_module_names.add(top[len(std_lib)+1:].replace(os.path.sep,'.'))
                 elif nm[-3:] == '.py':
-                    stdlib_module_names.add(os.path.join(prefix, nm)[:-3].replace(os.path.sep,'.'))
+                    stdlib_module_names.add(os.path.join(prefix, nm)[:-3].replace(os.path.sep,'.'))  # noqa: E501
                 elif nm[-3:] == '.so' and top[-11:] == 'lib-dynload':
                     stdlib_module_names.add(nm[0:-3])
         for builtin in sys.builtin_module_names:
@@ -77,24 +75,24 @@ def autoinstall(interactive=True, upgrade=False):
 
     if not interactive:
         print(f'autoinstall is installing the following: {" ".join(deps)} ...')
-        # pip_inside.install(*deps, upgrade=upgrade)
+        install(*deps, upgrade=upgrade)
     else:
         for mod, pkgs in deps:
             # TODO: check if dependency is installed
-            print(f'{dep} is not installed.')
+            print(f'{mod} is not installed.')
             while True:
-                resp = input(f'Install {dep}? (Y)es / (N)o / (C)ustomize name  ')
+                resp = input(f'Install {mod}? (Y)es / (N)o / (C)ustomize name  ')
                 if re.search(r'y(?:es)?', resp, flags=re.I):
-                    print(f'Installing {dep}...', file=sys.stderr)
-                    # pip_inside.install(dep, upgrade=upgrade)
+                    print(f'Installing {mod}...', file=sys.stderr)
+                    install(mod, upgrade=upgrade)
                     break
                 elif re.search(r'no?', resp, flags=re.I):
                     print('Okay. Taking no action.')
                     break
                 elif re.search(r'c(?:ustom)?', resp, flags=re.I):
-                    pkg_name = input(f'What package name would you like to install instead of {dep}? ')
-                    print(f'Installing {install_name}...', file=sys.stderr)
-                    # pip_inside.install(pkg_name, upgrade=upgrade)
+                    pkg_name = input(f'What package name would you like to install instead of {mod}? ')  # noqa: E501
+                    print(f'Installing {pkg_name}...', file=sys.stderr)
+                    install(pkg_name, upgrade=upgrade)
                     break
                 else:
                     print('Invalid input. Type "y", "n", or "c" and press [enter].')
