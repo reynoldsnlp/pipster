@@ -2,8 +2,8 @@ from importlib import import_module
 
 import pytest
 
-from pip_inside.install import _build_install_cmd
-from pip_inside import install
+from pipster.install import _build_install_cmd
+from pipster import install
 
 TEST_PKG = 'realpython-reader'
 TEST_PKG_A = TEST_PKG + '==0.0.1'

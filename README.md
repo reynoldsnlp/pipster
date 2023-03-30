@@ -1,30 +1,30 @@
-# pip\_inside
+# pipster
 
-Install packages using `pip` from inside a python console/interpreter:
+Install packages using `pip` from inside a python script or console:
 
 ```python
->>> from pip_inside import install
->>> install('pip install useful_module')
+>>> from pipster import install
+>>> install('useful_package')
 ```
 
-This tool solves the age-old problem of `pip install`ing a package only to
-realize that it was installed for the wrong interpreter. By installing from the
-interpreter, such mismatches are unlikely to occur.
+This tool solves the age-old problem of `pip install`ing a package only to find
+that you still can't import it because it was installed for the wrong
+interpreter. By installing from inside python, you ensure that it will be
+available to import from that version python.
 
 ## Installation
 
-Until the first release on PYPI, the following method will install `pip_inside`
-from the python console/REPL:
+Run the following in your terminal.
+
+```
+$ pip install --user pipster
+```
+
+...and if that's not working, you can run this in a python script or console:
+
 ```python
 import subprocess
 import sys
-cmd = 'pip install --user git+https://github.com/reynoldsnlp/pip_inside'
-cmd = [sys.executable,  '-m'] + cmd.split()
+cmd = [sys.executable,  '-m', 'pip', 'install', '--user', 'pipster']
 subprocess.check_call(cmd)
-```
-
-... or from `bash`:
-
-```bash
-$ pip install --user git+https://github.com/reynoldsnlp/pip_inside
 ```

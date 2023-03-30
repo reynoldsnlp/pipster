@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 
 [project]
-name = "pip_inside"
+name = "pipster"
 dynamic = ["version"]
 description = "pip install from inside your scripts"
 readme = "README.md"
@@ -24,8 +24,8 @@ classifiers = [
 
 
 [project.urls]
-Homepage = "https://github.com/reynoldsnlp/pip_inside"
-"Bug Tracker" = "https://github.com/reynoldsnlp/pip_inside/issues"
+Homepage = "https://github.com/reynoldsnlp/pipster"
+"Bug Tracker" = "https://github.com/reynoldsnlp/pipster/issues"
 
 
 [project.optional-dependencies]
@@ -36,7 +36,7 @@ test = [
 
 
 [tool.hatch.version]
-path = "src/pip_inside/_version.py"
+path = "src/pipster/_version.py"
 
 
 [tool.pytest]

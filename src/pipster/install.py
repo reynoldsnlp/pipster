@@ -24,7 +24,7 @@ for i in range(4):  # TODO: 4 is completely arbitrary here. improve?
 if pipfiles:
     pipfiles = [os.path.abspath(f) for f in pipfiles]
     msg = ('Warning: the following Pipfiles will be bypassed by '
-           'pip_inside.install:\n\t' + '\n\t'.join(pipfiles))
+           'pipster.install:\n\t' + '\n\t'.join(pipfiles))
     warn(msg, stacklevel=2)
 
 
@@ -41,7 +41,7 @@ def _parse_target(target):
 def install(*args, **kwargs):
     """Install packages into the current environment.
 
-    Equivalent examples of command-line pip and pip_inside are grouped below.
+    Equivalent examples of command-line pip and pipster are grouped below.
 
     METHOD 1: Single argument is exactly the same as command line interface,
     beginning with 'pip install ...'
