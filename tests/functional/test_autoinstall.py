@@ -1,4 +1,4 @@
-from pip_inside.autoinstall import _get_deps
+from pipster.autoinstall import _get_deps
 
 
 def test_get_deps():

@@ -1,16 +1,54 @@
 [build-system]
-requires = ["setuptools >= 61.0", "setuptools_scm[toml]>=6.2"]  # EXPERIMENTAL
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[tool.setuptools_scm]
-write_to = "src/pip_inside/_version.py"
+
+[project]
+name = "pipster"
+dynamic = ["version"]
+description = "pip install from inside your scripts"
+readme = "README.md"
+authors = [
+	{ name = "Robert Reynolds", email = "robert_reynolds@byu.edu" },
+]
+license = { file = "LICENSE" }
+requires_python = ">=3.8"
+dependencies = [
+	"pip",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: OS Independent",
+]
+
+
+[project.urls]
+Homepage = "https://github.com/reynoldsnlp/pipster"
+"Bug Tracker" = "https://github.com/reynoldsnlp/pipster/issues"
+
+
+[project.optional-dependencies]
+test = [
+  "pytest >=6.0",
+  "pytest-cov >=4.0",
+]
+
+
+[tool.hatch.version]
+path = "src/pipster/_version.py"
+
+
+[tool.pytest]
+python_files = "tests/functional/*.py"
+
 
 [tool.pytest.ini_options]
 minversion = "6.0"
 pythonpath = [
   "src"
 ]
-addopts = "-ra -q"
+addopts = "-ra -q --ignore=tests/data"
 testpaths = [
     "tests",
 ]

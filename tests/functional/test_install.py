@@ -2,8 +2,8 @@ from importlib import import_module
 
 import pytest
 
-from pip_inside.install import _build_install_cmd
-from pip_inside import install
+from pipster.install import _build_install_cmd
+from pipster import install
 
 TEST_PKG = 'realpython-reader'
 TEST_PKG_A = TEST_PKG + '==0.0.1'
@@ -22,12 +22,12 @@ install(wheel2, target="/tmp//", upgrade=True)
 def test_build_install_cmd_plain():
     io_pairs = [('pip install some_pkg',            ['pip', 'install', 'some_pkg']),
                 ('some_pkg',                        ['pip', 'install', 'some_pkg']),
-                ('pip install --user some_pkg',     ['pip', 'install', '--user', 'some_pkg']),
-                ('pip install -r requirements.txt', ['pip', 'install', '-r', 'requirements.txt']),
+                ('pip install --user some_pkg',     ['pip', 'install', '--user', 'some_pkg']),  # noqa: E501
+                ('pip install -r requirements.txt', ['pip', 'install', '-r', 'requirements.txt']),  # noqa: E501
                 ("pip install --target /tmp//dir_without_spaces /path/to/wheel",
-                 ['pip', 'install', '--target', '/tmp//dir_without_spaces', '/path/to/wheel']),
+                 ['pip', 'install', '--target', '/tmp//dir_without_spaces', '/path/to/wheel']),  # noqa: E501
                 ("pip install --target '/tmp//dir with spaces' /path/to/wheel",
-                 ['pip', 'install', '--target', '/tmp//dir with spaces', '/path/to/wheel']),
+                 ['pip', 'install', '--target', '/tmp//dir with spaces', '/path/to/wheel']),  # noqa: E501
                 ]
     for arg, output in io_pairs:
         cmd = _build_install_cmd(arg)
