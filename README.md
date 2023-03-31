@@ -1,13 +1,9 @@
-# pipster  🧔‍♂️ 
+# pipster
 
 > 
 
 <div align="center">
-  <figure>
     <img src="https://raw.githubusercontent.com/reynoldsnlp/pipster/main/images/pipster_138x250.jpg" alt="Pipster logo" width="138">
-    <br/>
-    <figcaption>&#8220;I was <code>pip install</code>ing from the inside <em>before</em> it was cool.&#8221;</figcaption>
-  </figure>
 <br/>
 <br/>
 
