@@ -45,12 +45,12 @@ subprocess.check_call(cmd)
 
 The `install` function can be called in two ways.
 
-### `install('pip install useful_package')
+#### `install('pip install useful_package')`
 
 If you give `install()` a single string that begins with `pip install`, then it
 will run that exact command as if it were given at the command line.
 
-### `install('useful_package1', 'useful_package2', user=True, ...)`
+#### `install('useful_package1', 'useful_package2', user=True, ...)`
 
 You can also pass any number of target packages along with commandline
 arguments or keyword arguments corresponding to commandline parameters for `pip
