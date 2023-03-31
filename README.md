@@ -8,9 +8,9 @@
     <br/>
     <figcaption>&#8220;I was `pip install`ing from inside python before it was cool&#8221;</figcaption>
   </figure>
+<br/>
 
 
-| | |
 | --- | --- |
 | CI/CD | [![CI - Test and Build](https://github.com/reynoldsnlp/pipster/actions/workflows/test_build_publish.yml/badge.svg)](https://github.com/reynoldsnlp/pipster/actions/workflows/test_build_publish.yml) |
 | Package | [![PyPI - Version](https://img.shields.io/pypi/v/pipster.svg?logo=pypi&label=PyPI&logoColor=gold)](https://pypi.org/project/pipster/) [![PyPI - Downloads](https://img.shields.io/pypi/dm/pipster.svg?color=blue&label=Downloads&logo=pypi&logoColor=gold)](https://pypi.org/project/pipster/) [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pipster.svg?logo=python&label=Python&logoColor=gold)](https://pypi.org/project/pipster/) |
