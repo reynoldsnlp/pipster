@@ -3,7 +3,7 @@
 > &#8220;I was `pip install`ing from the script or console before it was cool&#8221;
 
 <div>
-  <img src="" alt="Pipster logo" width="138" role="img" style="float: left; margin: 0 15px 0 0">
+  <img src="https://raw.githubusercontent.com/reynoldsnlp/pipster/main/images/pipster_138x250.jpg" alt="Pipster logo" width="138" role="img" style="float: left; margin: 0 15px 0 0">
 
 | | |
 | --- | --- |
@@ -22,7 +22,7 @@ Install packages using `pip` from inside a python script or console:
 This tool solves the age-old problem of `pip install`ing a package only to find
 that you still can't import it because it was installed for the wrong
 interpreter. By installing from inside python, you ensure that it will be
-available to import from that version python.
+available to import from that instance of python.
 
 ## Installation
 
@@ -39,4 +39,26 @@ import subprocess
 import sys
 cmd = [sys.executable,  '-m', 'pip', 'install', '--user', 'pipster']
 subprocess.check_call(cmd)
+```
+
+## Usage
+
+The `install` function can be called in two ways.
+
+### `install('pip install useful_package')
+
+If you give `install()` a single string that begins with `pip install`, then it
+will run that exact command as if it were given at the command line.
+
+### `install('useful_package1', 'useful_package2', user=True, ...)`
+
+You can also pass any number of target packages along with commandline
+arguments or keyword arguments corresponding to commandline parameters for `pip
+install`. For example, all of the following lines have the same result:
+
+```python
+$ pip install -r requirements.txt
+>>> install('pip install -r requirements.txt')
+>>> install('-r', 'requirements.txt')
+>>> install(r='requirements.txt')
 ```
