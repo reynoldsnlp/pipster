@@ -1,9 +1,13 @@
 # pipster  🐍 🧔‍♂️ 🚲 🍺
 
-> &#8220;I was `pip install`ing from the script or console before it was cool&#8221;
+> 
 
 <div>
-  <img src="https://raw.githubusercontent.com/reynoldsnlp/pipster/main/images/pipster_138x250.jpg" alt="Pipster logo" width="138" role="img" style="float: left; margin: 0 15px 0 0">
+  <figure>
+    <img src="https://raw.githubusercontent.com/reynoldsnlp/pipster/10-update-readme-with-better-examples/images/pipster_138x250.jpg" alt="Pipster logo" width="138" role="img" style="float: left; margin: 0 15px 0 0">
+    <figcaption>&#8220;I was `pip install`ing from the script or console before it was cool&#8221;</figcaption>
+  </figure>
+
 
 | | |
 | --- | --- |
