@@ -9,7 +9,7 @@
     <figcaption>&#8220;I was `pip install`ing from inside python before it was cool&#8221;</figcaption>
   </figure>
 <br/>
-
+<br/>
 
 | | |
 | --- | --- |
