@@ -2,8 +2,8 @@
 
 set -e  # Exit on error
 
-echo "Running black..."
-black .
+echo "Running black check..."
+black --check .
 
 echo "Running mypy..."
 mypy .
