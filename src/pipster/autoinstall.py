@@ -29,7 +29,7 @@ def get_stdlib_module_names():
                 elif nm[-3:] == ".py":
                     stdlib_module_names.add(
                         os.path.join(prefix, nm)[:-3].replace(os.path.sep, ".")
-                    )  # noqa: E501
+                    )
                 elif nm[-3:] == ".so" and top[-11:] == "lib-dynload":
                     stdlib_module_names.add(nm[0:-3])
         for builtin in sys.builtin_module_names:
@@ -100,8 +100,8 @@ def autoinstall(interactive=True, upgrade=False):
                     break
                 elif re.search(r"c(?:ustom)?", resp, flags=re.I):
                     pkg_name = input(
-                        f"What package name would you like to install instead of {mod}? "
-                    )  # noqa: E501
+                        f"What package would you like to install instead of {mod}? "
+                    )
                     print(f"Installing {pkg_name}...", file=sys.stderr)
                     install(pkg_name, upgrade=upgrade)
                     break

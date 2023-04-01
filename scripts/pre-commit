@@ -8,5 +8,8 @@ black --check .
 echo "Running mypy..."
 mypy .
 
+echo "Running ruff..."
+ruff .
+
 echo "Running pytest..."
 pytest
