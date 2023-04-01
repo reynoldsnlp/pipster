@@ -38,7 +38,8 @@ def _parse_target(target: str) -> str:
     """Parse install target down to the distribution name."""
     # TODO: make more robust
     if target.endswith(".whl"):
-        match = Wheel.wheel_file_re.match(Path(target).name)
+        filename = Path(target).name  # without path
+        match = Wheel.wheel_file_re.match(filename)
         if match:
             return match.groupdict()["name"]
         else:
