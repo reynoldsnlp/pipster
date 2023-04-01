@@ -5,6 +5,7 @@ import re
 import shlex
 import subprocess
 import sys
+from typing import List
 from warnings import warn
 
 try:
@@ -28,17 +29,21 @@ if pipfiles:
     warn(msg, stacklevel=2)
 
 
-def _parse_target(target):
+def _parse_target(target: str) -> str:
     """Parse install target down to the distribution name."""
     # TODO: make more robust
     if target.endswith('.whl'):
         return Path(target).name.split('-')[0]
     else:
         # https://pip.pypa.io/en/stable/reference/requirement-specifiers/
-        return re.search(r'(.+?)(?:[!~<>=]{1,2}.+)?$', target).group(1)
+        match = re.search(r'(.+?)(?:[!~<>=]{1,2}.+)?$', target)
+        if match:
+            return match.group(1)
+        else:
+            raise ValueError(f'The give target ({target}) cannot be parsed.')
 
 
-def install(*args, **kwargs):
+def install(*args, **kwargs) -> subprocess.CompletedProcess:
     """Install packages into the current environment.
 
     Equivalent examples of command-line pip and pipster are grouped below.
@@ -86,7 +91,9 @@ def install(*args, **kwargs):
     target_origins = {}
     for t in target_providers:
         if t in sys.modules:
-            target_origins[sys.modules[t].__spec__.origin] = t
+            module_spec = sys.modules[t].__spec__
+            if module_spec is not None:
+                target_origins[module_spec.origin] = t
     dist_path = DistributionPath(include_egg=True)
     dists = [dist_path.get_distribution(t) for t in req_targets]
     paths = set()
@@ -95,7 +102,7 @@ def install(*args, **kwargs):
             for path, _, _ in dist.list_installed_files():
                 paths.add(os.path.join(os.path.dirname(dist.path), path))
     already_loaded = paths.intersection(target_origins)
-    already_loaded = [target_origins[origin] for origin in already_loaded]
+    already_loaded = {target_origins[origin] for origin in already_loaded}
     print('Trying  ', ' '.join(cli_args), '  ...', file=sys.stderr)
     cli_cmd = [sys.executable, "-m"] + cli_args
     result = subprocess.run(cli_cmd, check=True)
@@ -106,7 +113,7 @@ def install(*args, **kwargs):
     return result
 
 
-def _build_install_cmd(*args, **kwargs):
+def _build_install_cmd(*args, **kwargs) -> List[str]:
     if len(args) == 1 and args[0].startswith('pip install '):
         return shlex.split(args[0])
     else:

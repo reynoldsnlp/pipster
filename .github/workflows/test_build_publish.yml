@@ -29,8 +29,9 @@ jobs:
         run: |
           python -m pip install --upgrade hatch pip
           pip install pytest pytest-cov ruff
-      - name: Lint with ruff
+      - name: Lint with mypy and ruff
         run: |
+          mypy .
           ruff --format=github .
       - name: Test with pytest
         run: |

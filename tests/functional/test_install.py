@@ -10,6 +10,10 @@ TEST_PKG_A = TEST_PKG + '==0.0.1'
 TEST_PKG_B = TEST_PKG + '==1.1.1'
 TEST_MODULE = 'reader'
 
+WHEEL_PATH = 'tests/data/packages/'
+WHEEL1 = WHEEL_PATH + 'simplewheel-1.0-py2.py3-none-any.whl'
+WHEEL2 = WHEEL_PATH + 'simplewheel-2.0-py2.py3-none-any.whl'
+
 
 """
 TODO implement the following tests
@@ -48,24 +52,18 @@ def test_build_install_cmd_underscores():
 
 
 def test_install_simplewheel():
-    wheel_path = 'tests/data/packages/'
-    wheel1 = wheel_path + 'simplewheel-1.0-py2.py3-none-any.whl'
-    wheel2 = wheel_path + 'simplewheel-2.0-py2.py3-none-any.whl'
-    result1 = install(wheel1)
+    result1 = install(WHEEL1)
     assert result1.returncode == 0
-    result2 = install(wheel2)
+    result2 = install(WHEEL2)
     assert result2.returncode == 0
 
 
 def test_already_loaded():
-    wheel_path = 'tests/data/packages/'
-    wheel1 = wheel_path + 'simplewheel-1.0-py2.py3-none-any.whl'
-    wheel2 = wheel_path + 'simplewheel-2.0-py2.py3-none-any.whl'
-    result1 = install(wheel1)
+    result1 = install(WHEEL1)
     assert result1.returncode == 0
-    import simplewheel  # noqa: F401
+    import simplewheel  # type: ignore  # noqa: F401
     with pytest.warns(UserWarning):
-        result2 = install(wheel2)
+        result2 = install(WHEEL2)
         assert result2.returncode == 0
 
 

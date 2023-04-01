@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -e  # Exit on error
+
+echo "Running mypy..."
+mypy .
+
+echo "Running pytest..."
+pytest
