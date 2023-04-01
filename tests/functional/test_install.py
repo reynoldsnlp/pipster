@@ -3,6 +3,7 @@ from importlib import import_module
 import pytest
 
 from pipster.install import _build_install_cmd
+from pipster.install import _parse_target
 from pipster import install
 
 TEST_PKG = "realpython-reader"
@@ -68,6 +69,13 @@ def test_build_install_cmd_kwarg():
         "--user",
         "some_pkg",
     ]
+
+
+def test__parse_target():
+    assert _parse_target(WHEEL1) == "simplewheel"
+    assert _parse_target(WHEEL2) == "simplewheel"
+    assert _parse_target(TEST_PKG_A) == "realpython-reader"
+    assert _parse_target(TEST_PKG_B) == "realpython-reader"
 
 
 def test_build_install_cmd_underscores():

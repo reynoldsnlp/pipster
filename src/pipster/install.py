@@ -10,6 +10,7 @@ from warnings import warn
 
 try:
     from pip._internal.commands.install import InstallCommand
+    from pip._internal.models.wheel import Wheel
     from pip._vendor.distlib.database import DistributionPath
 
     install_cmd = InstallCommand(name="dummy", summary="Provides parse_args.")
@@ -37,14 +38,18 @@ def _parse_target(target: str) -> str:
     """Parse install target down to the distribution name."""
     # TODO: make more robust
     if target.endswith(".whl"):
-        return Path(target).name.split("-")[0]
+        match = Wheel.wheel_file_re.match(Path(target).name)
+        if match:
+            return match.groupdict()["name"]
+        else:
+            raise ValueError(f"Failed to extract distribution name from {target}.")
     else:
         # https://pip.pypa.io/en/stable/reference/requirement-specifiers/
         match = re.search(r"(.+?)(?:[!~<>=]{1,2}.+)?$", target)
         if match:
             return match.group(1)
         else:
-            raise ValueError(f"The give target ({target}) cannot be parsed.")
+            raise ValueError(f"Failed to extract distribution name from {target}.")
 
 
 def install(*args, **kwargs) -> subprocess.CompletedProcess:
