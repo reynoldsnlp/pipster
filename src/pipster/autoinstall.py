@@ -6,7 +6,8 @@ import re
 import sys
 
 from . import install
-__all__ = ['autoinstall']
+
+__all__ = ["autoinstall"]
 
 
 def get_stdlib_module_names():
@@ -18,14 +19,18 @@ def get_stdlib_module_names():
 
         for top, dirs, files in os.walk(std_lib):
             for nm in files:
-                prefix = top[len(std_lib)+1:]
-                if prefix[:13] == 'site-packages':
+                prefix = top[len(std_lib) + 1 :]
+                if prefix[:13] == "site-packages":
                     continue
-                if nm == '__init__.py':
-                    stdlib_module_names.add(top[len(std_lib)+1:].replace(os.path.sep,'.'))
-                elif nm[-3:] == '.py':
-                    stdlib_module_names.add(os.path.join(prefix, nm)[:-3].replace(os.path.sep,'.'))  # noqa: E501
-                elif nm[-3:] == '.so' and top[-11:] == 'lib-dynload':
+                if nm == "__init__.py":
+                    stdlib_module_names.add(
+                        top[len(std_lib) + 1 :].replace(os.path.sep, ".")
+                    )
+                elif nm[-3:] == ".py":
+                    stdlib_module_names.add(
+                        os.path.join(prefix, nm)[:-3].replace(os.path.sep, ".")
+                    )
+                elif nm[-3:] == ".so" and top[-11:] == "lib-dynload":
                     stdlib_module_names.add(nm[0:-3])
         for builtin in sys.builtin_module_names:
             stdlib_module_names.add(builtin)
@@ -41,11 +46,11 @@ def _get_deps(path, include_stdlib=False):
     for node in ast.walk(root):
         if isinstance(node, ast.Import):
             for n in node.names:
-                mod = n.name.split('.')[0]
+                mod = n.name.split(".")[0]
                 if include_stdlib or mod not in stdlib_module_names:
                     deps.append(mod)
         elif isinstance(node, ast.ImportFrom):
-            mod = node.module.split('.')[0]
+            mod = node.module.split(".")[0]
             if include_stdlib or mod not in stdlib_module_names:
                 deps.append(mod)
         else:
@@ -55,19 +60,20 @@ def _get_deps(path, include_stdlib=False):
     # import sklearn  # install scikit-learn
     # TODO Make this robust a la https://stackoverflow.com/a/36055400/2903532
     with open(path) as f:
-        install_lines = [line for line in f
-                         if 'import' in line
-                         and re.search(r'#\s+install\s+', line)]
+        install_lines = [
+            line
+            for line in f
+            if "import" in line and re.search(r"#\s+install\s+", line)
+        ]
     dep_pkg_list = []
     for dep in deps:
-        pkgs = [m.group(1).split()
-                for line in install_lines
-                if dep in line
-                and (m := re.search(r'#\s+install\s+([\s0-9A-Za-z-_.]+)', line))]
-        pkgs = set(pkg
-                   for group in pkgs
-                   for pkg in group
-                   if pkg)  # flatten pkgs
+        pkgs = [
+            m.group(1).split()
+            for line in install_lines
+            if dep in line
+            and (m := re.search(r"#\s+install\s+([\s0-9A-Za-z-_.]+)", line))
+        ]
+        pkgs = set(pkg for group in pkgs for pkg in group if pkg)  # flatten pkgs
         dep_pkg_list.append((dep, tuple(pkgs) or None))
     return dep_pkg_list
 
@@ -82,19 +88,21 @@ def autoinstall(interactive=True, upgrade=False):
     else:
         for mod, pkgs in deps:
             # TODO: check if dependency is installed
-            print(f'{mod} is not installed.')
+            print(f"{mod} is not installed.")
             while True:
-                resp = input(f'Install {mod}? (Y)es / (N)o / (C)ustomize name  ')
-                if re.search(r'y(?:es)?', resp, flags=re.I):
-                    print(f'Installing {mod}...', file=sys.stderr)
+                resp = input(f"Install {mod}? (Y)es / (N)o / (C)ustomize name  ")
+                if re.search(r"y(?:es)?", resp, flags=re.I):
+                    print(f"Installing {mod}...", file=sys.stderr)
                     install(mod, upgrade=upgrade)
                     break
-                elif re.search(r'no?', resp, flags=re.I):
-                    print('Okay. Taking no action.')
+                elif re.search(r"no?", resp, flags=re.I):
+                    print("Okay. Taking no action.")
                     break
-                elif re.search(r'c(?:ustom)?', resp, flags=re.I):
-                    pkg_name = input(f'What package name would you like to install instead of {mod}? ')  # noqa: E501
-                    print(f'Installing {pkg_name}...', file=sys.stderr)
+                elif re.search(r"c(?:ustom)?", resp, flags=re.I):
+                    pkg_name = input(
+                        f"What package would you like to install instead of {mod}? "
+                    )
+                    print(f"Installing {pkg_name}...", file=sys.stderr)
                     install(pkg_name, upgrade=upgrade)
                     break
                 else:

@@ -42,6 +42,11 @@ test = [
 path = "src/pipster/_version.py"
 
 
+[tool.mypy]
+mypy_path = "$MYPY_CONFIG_FILE_DIR/src"
+explicit_package_bases = true
+
+
 [tool.pytest]
 python_files = "tests/functional/*.py"
 

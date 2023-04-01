@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -e  # Exit on error
+
+echo "Running black check..."
+black --check .
+
+echo "Running mypy..."
+mypy .
+
+echo "Running ruff..."
+ruff .
+
+echo "Running pytest..."
+pytest
