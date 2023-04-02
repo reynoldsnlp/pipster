@@ -1,11 +1,13 @@
 from glob import glob
 import os
 from pathlib import Path
+import re
 import shlex
 import subprocess
 import sys
 from typing import List
 from typing import Optional
+from urllib.parse import urlparse
 from warnings import warn
 
 try:
@@ -67,10 +69,18 @@ def _check_if_already_loaded(requirements):
 
 
 def _get_dist_name(target: str) -> Optional[str]:
-    """Parse install target down to the distribution name.
-    https://pip.pypa.io/en/stable/cli/pip_install/#working-out-the-name-and-version
-    """
-    if os.path.isfile(target):  # packaging.utils functions for whl and sdist
+    """Parse install target down to the distribution name."""
+    warn_msg = (
+        f"If {target} was already imported, python must be restarted "
+        "to import the newly installed version."
+    )
+    # parse `pip install "asdf @ ..."`
+    at_match = re.match(r"([A-Za-z0-9.-_]+)\s+@\s+(.+)", target)
+    if at_match:
+        at_name, target = at_match.groups()
+    else:
+        at_name = None
+    if os.path.isfile(target):
         filename = Path(target).name
         if target.endswith(".whl"):
             name, _, _, _ = parse_wheel_filename(filename)
@@ -80,12 +90,42 @@ def _get_dist_name(target: str) -> Optional[str]:
             return name
         else:
             raise ValueError(f"{filename} does not end in whl, tar.gz, or zip.")
-    elif os.path.isdir(target):  # setup.py egg_info
-        return None  # TODO
-    elif False:  # is URL  # check for #egg=name
-        return None  # TODO
+    elif os.path.isdir(target):  #
+        if at_name:
+            return at_name
+        else:
+            warn(warn_msg, UserWarning)
+            return None  # TODO setup.py egg_info?
+    elif _is_valid_url(target):
+        parsed_url = urlparse(target)
+        if egg_match := re.search(r"egg=([A-Za-z0-9-_.]+)", parsed_url.fragment):
+            return egg_match.group(1)
+        elif parsed_url.path.endswith("whl"):
+            filename = Path(parsed_url.path).name
+            name, _, _, _ = parse_wheel_filename(filename)
+            return name
+        elif parsed_url.path.endswith("tar.gz") or parsed_url.path.endswith("zip"):
+            filename = Path(parsed_url.path).name
+            name, _ = parse_sdist_filename(filename)
+            return name
+        else:
+            if at_name:
+                return at_name
+            else:
+                warn(warn_msg, UserWarning)
+                return None  # TODO  Can this be determined further?
     else:
         return Requirement(target).name
+
+
+def _is_valid_url(url):
+    try:
+        parsed_url = urlparse(url)
+        return parsed_url.scheme and (
+            parsed_url.netloc or parsed_url.scheme.endswith("file")
+        )
+    except:  # noqa: E722
+        return False
 
 
 def install(*args, **kwargs) -> subprocess.CompletedProcess:
