@@ -82,14 +82,7 @@ def _get_dist_name(target: str) -> Optional[str]:
         at_name = None
     if os.path.isfile(target):
         filename = Path(target).name
-        if target.endswith(".whl"):
-            name, _, _, _ = parse_wheel_filename(filename)
-            return name
-        elif target.endswith(".tar.gz") or target.endswith(".zip"):
-            name, _ = parse_sdist_filename(filename)
-            return name
-        else:
-            raise ValueError(f"{filename} does not end in whl, tar.gz, or zip.")
+        return _get_dist_name_from_filename(filename)
     elif os.path.isdir(target):  #
         if at_name:
             return at_name
@@ -100,14 +93,9 @@ def _get_dist_name(target: str) -> Optional[str]:
         parsed_url = urlparse(target)
         if egg_match := re.search(r"egg=([A-Za-z0-9-_.]+)", parsed_url.fragment):
             return egg_match.group(1)
-        elif parsed_url.path.endswith("whl"):
+        elif re.search(r"\.(?:whl|tar\.gz|zip)$", parsed_url.path):
             filename = Path(parsed_url.path).name
-            name, _, _, _ = parse_wheel_filename(filename)
-            return name
-        elif parsed_url.path.endswith("tar.gz") or parsed_url.path.endswith("zip"):
-            filename = Path(parsed_url.path).name
-            name, _ = parse_sdist_filename(filename)
-            return name
+            return _get_dist_name_from_filename(filename)
         else:
             if at_name:
                 return at_name
@@ -116,6 +104,17 @@ def _get_dist_name(target: str) -> Optional[str]:
                 return None  # TODO  Can this be determined further?
     else:
         return Requirement(target).name
+
+
+def _get_dist_name_from_filename(filename):
+    if filename.endswith(".whl"):
+        name, _, _, _ = parse_wheel_filename(filename)
+        return name
+    elif filename.endswith(".tar.gz") or filename.endswith(".zip"):
+        name, _ = parse_sdist_filename(filename)
+        return name
+    else:
+        raise ValueError(f"{filename} does not end in whl, tar.gz, or zip.")
 
 
 def _is_valid_url(url):
