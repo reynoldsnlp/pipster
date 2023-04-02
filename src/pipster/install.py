@@ -1,19 +1,19 @@
 from glob import glob
 import os
 from pathlib import Path
-import re
 import shlex
 import subprocess
 import sys
 from typing import List
+from typing import Optional
 from warnings import warn
 
 try:
     from pip._internal.commands.install import InstallCommand
-    from pip._internal.models.wheel import Wheel
     from pip._vendor.distlib.database import DistributionPath
-
-    install_cmd = InstallCommand(name="dummy", summary="Provides parse_args.")
+    from pip._vendor.packaging.requirements import Requirement
+    from pip._vendor.packaging.utils import parse_wheel_filename
+    from pip._vendor.packaging.utils import parse_sdist_filename
 except ModuleNotFoundError:
     raise ModuleNotFoundError(
         "Please install pip for the current " "interpreter: (%s)." % sys.executable
@@ -22,35 +22,70 @@ except ModuleNotFoundError:
 __all__ = ["install"]
 
 
-pipfiles = []
-for i in range(4):  # TODO: 4 is completely arbitrary here. improve?
-    pipfiles.extend(glob((".." + os.sep) * i + "Pipfile"))
-if pipfiles:
-    pipfiles = [os.path.abspath(f) for f in pipfiles]
-    msg = (
-        "Warning: the following Pipfiles will be bypassed by "
-        "pipster.install:\n\t" + "\n\t".join(pipfiles)
-    )
-    warn(msg, stacklevel=2)
+install_cmd = InstallCommand(name="dummy", summary="Provides parse_args.")
 
 
-def _parse_target(target: str) -> str:
-    """Parse install target down to the distribution name."""
-    # TODO: make more robust
-    if target.endswith(".whl"):
-        filename = Path(target).name  # without path
-        match = Wheel.wheel_file_re.match(filename)
-        if match:
-            return match.groupdict()["name"]
+def _check_for_pipfiles():
+    pipfiles = []
+    for i in range(4):  # TODO: 4 is completely arbitrary here. improve?
+        pipfiles.extend(glob((".." + os.sep) * i + "Pipfile"))
+    if pipfiles:
+        pipfiles = [os.path.abspath(f) for f in pipfiles]
+        msg = (
+            "Warning: the following Pipfiles will be bypassed by "
+            "pipster.install:\n\t" + "\n\t".join(pipfiles)
+        )
+        warn(msg, stacklevel=2)
+
+
+def _check_if_already_loaded(requirements):
+    req_targets = [_get_dist_name(r) for r in requirements]
+    dist_path = DistributionPath(include_egg=True)
+    target_providers = [
+        d.modules
+        for t in req_targets
+        for d in dist_path.get_distributions()  # installed
+        if t == d.name
+    ]
+    target_providers = [y for x in target_providers for y in x]  # flatten
+    target_origins = {}
+    for t in target_providers:
+        if t in sys.modules:
+            module_spec = sys.modules[t].__spec__
+            if module_spec is not None:
+                target_origins[module_spec.origin] = t
+    dist_path = DistributionPath(include_egg=True)
+    dists = [dist_path.get_distribution(t) for t in req_targets]
+    paths = set()
+    for dist in dists:
+        if dist is not None:
+            for path, _, _ in dist.list_installed_files():
+                paths.add(os.path.join(os.path.dirname(dist.path), path))
+    already_loaded = paths.intersection(target_origins)
+    already_loaded = {target_origins[origin] for origin in already_loaded}
+    return already_loaded
+
+
+def _get_dist_name(target: str) -> Optional[str]:
+    """Parse install target down to the distribution name.
+    https://pip.pypa.io/en/stable/cli/pip_install/#working-out-the-name-and-version
+    """
+    if os.path.isfile(target):  # packaging.utils functions for whl and sdist
+        filename = Path(target).name
+        if target.endswith(".whl"):
+            name, _, _, _ = parse_wheel_filename(filename)
+            return name
+        elif target.endswith(".tar.gz") or target.endswith(".zip"):
+            name, _ = parse_sdist_filename(filename)
+            return name
         else:
-            raise ValueError(f"Failed to extract distribution name from {target}.")
+            raise ValueError(f"{filename} does not end in whl, tar.gz, or zip.")
+    elif os.path.isdir(target):  # setup.py egg_info
+        return None  # TODO
+    elif False:  # is URL  # check for #egg=name
+        return None  # TODO
     else:
-        # https://pip.pypa.io/en/stable/reference/requirement-specifiers/
-        match = re.search(r"(.+?)(?:[!~<>=]{1,2}.+)?$", target)
-        if match:
-            return match.group(1)
-        else:
-            raise ValueError(f"Failed to extract distribution name from {target}.")
+        return Requirement(target).name
 
 
 def install(*args, **kwargs) -> subprocess.CompletedProcess:
@@ -87,34 +122,12 @@ def install(*args, **kwargs) -> subprocess.CompletedProcess:
     >>> install(*'--no-index --find-links /local/dir/ some_pkg'.split())
 
     """
+    _check_for_pipfiles()
     cli_args = _build_install_cmd(*args, **kwargs)
     # use pip internals to isolate package names
     _, req_targets = install_cmd.parse_args(cli_args)
     assert req_targets[:2] == ["pip", "install"]
-    req_targets = [_parse_target(t) for t in req_targets[2:]]
-    dist_path = DistributionPath(include_egg=True)
-    target_providers = [
-        d.modules
-        for t in req_targets
-        for d in dist_path.get_distributions()  # installed
-        if t == d.name
-    ]
-    target_providers = [y for x in target_providers for y in x]  # flatten
-    target_origins = {}
-    for t in target_providers:
-        if t in sys.modules:
-            module_spec = sys.modules[t].__spec__
-            if module_spec is not None:
-                target_origins[module_spec.origin] = t
-    dist_path = DistributionPath(include_egg=True)
-    dists = [dist_path.get_distribution(t) for t in req_targets]
-    paths = set()
-    for dist in dists:
-        if dist is not None:
-            for path, _, _ in dist.list_installed_files():
-                paths.add(os.path.join(os.path.dirname(dist.path), path))
-    already_loaded = paths.intersection(target_origins)
-    already_loaded = {target_origins[origin] for origin in already_loaded}
+    already_loaded = _check_if_already_loaded(req_targets[2:])
     print("Trying  ", " ".join(cli_args), "  ...", file=sys.stderr)
     cli_cmd = [sys.executable, "-m"] + cli_args
     result = subprocess.run(cli_cmd, check=True)
