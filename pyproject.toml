@@ -32,6 +32,18 @@ Homepage = "https://github.com/reynoldsnlp/pipster"
 
 
 [project.optional-dependencies]
+dev = [
+  "black",
+  "mypy",
+  "pytest >=6.0",
+  "pytest-cov >=4.0",
+  "ruff",
+]
+lint = [
+  "black",
+  "mypy",
+  "ruff",
+]
 test = [
   "pytest >=6.0",
   "pytest-cov >=4.0",

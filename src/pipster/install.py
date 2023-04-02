@@ -6,13 +6,16 @@ import shlex
 import subprocess
 import sys
 from typing import List
+from typing import Optional
+from urllib.parse import urlparse
 from warnings import warn
 
 try:
     from pip._internal.commands.install import InstallCommand
     from pip._vendor.distlib.database import DistributionPath
-
-    install_cmd = InstallCommand(name="dummy", summary="Provides parse_args.")
+    from pip._vendor.packaging.requirements import Requirement
+    from pip._vendor.packaging.utils import parse_wheel_filename
+    from pip._vendor.packaging.utils import parse_sdist_filename
 except ModuleNotFoundError:
     raise ModuleNotFoundError(
         "Please install pip for the current " "interpreter: (%s)." % sys.executable
@@ -21,30 +24,107 @@ except ModuleNotFoundError:
 __all__ = ["install"]
 
 
-pipfiles = []
-for i in range(4):  # TODO: 4 is completely arbitrary here. improve?
-    pipfiles.extend(glob((".." + os.sep) * i + "Pipfile"))
-if pipfiles:
-    pipfiles = [os.path.abspath(f) for f in pipfiles]
-    msg = (
-        "Warning: the following Pipfiles will be bypassed by "
-        "pipster.install:\n\t" + "\n\t".join(pipfiles)
-    )
-    warn(msg, stacklevel=2)
+install_cmd = InstallCommand(name="dummy", summary="Provides parse_args.")
 
 
-def _parse_target(target: str) -> str:
+def _check_for_pipfiles():
+    pipfiles = []
+    for i in range(4):  # TODO: 4 is completely arbitrary here. improve?
+        pipfiles.extend(glob((".." + os.sep) * i + "Pipfile"))
+    if pipfiles:
+        pipfiles = [os.path.abspath(f) for f in pipfiles]
+        msg = (
+            "Warning: the following Pipfiles will be bypassed by "
+            "pipster.install:\n\t" + "\n\t".join(pipfiles)
+        )
+        warn(msg, stacklevel=2)
+
+
+def _check_if_already_loaded(requirements):
+    req_targets = [_get_dist_name(r) for r in requirements]
+    dist_path = DistributionPath(include_egg=True)
+    target_providers = [
+        d.modules
+        for t in req_targets
+        for d in dist_path.get_distributions()  # installed
+        if t == d.name
+    ]
+    target_providers = [y for x in target_providers for y in x]  # flatten
+    target_origins = {}
+    for t in target_providers:
+        if t in sys.modules:
+            module_spec = sys.modules[t].__spec__
+            if module_spec is not None:
+                target_origins[module_spec.origin] = t
+    dist_path = DistributionPath(include_egg=True)
+    dists = [dist_path.get_distribution(t) for t in req_targets]
+    paths = set()
+    for dist in dists:
+        if dist is not None:
+            for path, _, _ in dist.list_installed_files():
+                paths.add(os.path.join(os.path.dirname(dist.path), path))
+    already_loaded = paths.intersection(target_origins)
+    already_loaded = {target_origins[origin] for origin in already_loaded}
+    return already_loaded
+
+
+def _get_dist_name(target: str) -> Optional[str]:
     """Parse install target down to the distribution name."""
-    # TODO: make more robust
-    if target.endswith(".whl"):
-        return Path(target).name.split("-")[0]
+    warn_msg = (
+        f"If {target} was already imported, python must be restarted "
+        "to import the newly installed version."
+    )
+    # parse `pip install "asdf @ ..."`
+    at_match = re.match(r"([A-Za-z0-9.-_]+)\s+@\s+(.+)", target)
+    if at_match:
+        at_name, target = at_match.groups()
     else:
-        # https://pip.pypa.io/en/stable/reference/requirement-specifiers/
-        match = re.search(r"(.+?)(?:[!~<>=]{1,2}.+)?$", target)
-        if match:
-            return match.group(1)
+        at_name = None
+    if os.path.isfile(target):
+        filename = Path(target).name
+        return _get_dist_name_from_filename(filename)
+    elif os.path.isdir(target):  #
+        if at_name:
+            return at_name
         else:
-            raise ValueError(f"The give target ({target}) cannot be parsed.")
+            warn(warn_msg, UserWarning)
+            return None  # TODO setup.py egg_info?
+    elif _is_valid_url(target):
+        parsed_url = urlparse(target)
+        if egg_match := re.search(r"egg=([A-Za-z0-9-_.]+)", parsed_url.fragment):
+            return egg_match.group(1)
+        elif re.search(r"\.(?:whl|tar\.gz|zip)$", parsed_url.path):
+            filename = Path(parsed_url.path).name
+            return _get_dist_name_from_filename(filename)
+        else:
+            if at_name:
+                return at_name
+            else:
+                warn(warn_msg, UserWarning)
+                return None  # TODO  Can this be determined further?
+    else:
+        return Requirement(target).name
+
+
+def _get_dist_name_from_filename(filename):
+    if filename.endswith(".whl"):
+        name, _, _, _ = parse_wheel_filename(filename)
+        return name
+    elif filename.endswith(".tar.gz") or filename.endswith(".zip"):
+        name, _ = parse_sdist_filename(filename)
+        return name
+    else:
+        raise ValueError(f"{filename} does not end in whl, tar.gz, or zip.")
+
+
+def _is_valid_url(url):
+    try:
+        parsed_url = urlparse(url)
+        return parsed_url.scheme and (
+            parsed_url.netloc or parsed_url.scheme.endswith("file")
+        )
+    except:  # noqa: E722
+        return False
 
 
 def install(*args, **kwargs) -> subprocess.CompletedProcess:
@@ -81,34 +161,12 @@ def install(*args, **kwargs) -> subprocess.CompletedProcess:
     >>> install(*'--no-index --find-links /local/dir/ some_pkg'.split())
 
     """
+    _check_for_pipfiles()
     cli_args = _build_install_cmd(*args, **kwargs)
     # use pip internals to isolate package names
     _, req_targets = install_cmd.parse_args(cli_args)
     assert req_targets[:2] == ["pip", "install"]
-    req_targets = [_parse_target(t) for t in req_targets[2:]]
-    dist_path = DistributionPath(include_egg=True)
-    target_providers = [
-        d.modules
-        for t in req_targets
-        for d in dist_path.get_distributions()  # installed
-        if t == d.name
-    ]
-    target_providers = [y for x in target_providers for y in x]  # flatten
-    target_origins = {}
-    for t in target_providers:
-        if t in sys.modules:
-            module_spec = sys.modules[t].__spec__
-            if module_spec is not None:
-                target_origins[module_spec.origin] = t
-    dist_path = DistributionPath(include_egg=True)
-    dists = [dist_path.get_distribution(t) for t in req_targets]
-    paths = set()
-    for dist in dists:
-        if dist is not None:
-            for path, _, _ in dist.list_installed_files():
-                paths.add(os.path.join(os.path.dirname(dist.path), path))
-    already_loaded = paths.intersection(target_origins)
-    already_loaded = {target_origins[origin] for origin in already_loaded}
+    already_loaded = _check_if_already_loaded(req_targets[2:])
     print("Trying  ", " ".join(cli_args), "  ...", file=sys.stderr)
     cli_cmd = [sys.executable, "-m"] + cli_args
     result = subprocess.run(cli_cmd, check=True)
