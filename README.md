@@ -1,7 +1,5 @@
 # pipster
 
-> 
-
 <div align="center">
     <img src="https://raw.githubusercontent.com/reynoldsnlp/pipster/main/images/pipster_138x250.jpg" alt="Pipster logo" width="138">
 <br/>
