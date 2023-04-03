@@ -12,8 +12,13 @@ from warnings import warn
 
 try:
     from pip._internal.commands.install import InstallCommand
+    from pip._internal.network.session import PipSession
+    from pip._internal.req.req_file import parse_requirements
     from pip._vendor.distlib.database import DistributionPath
+    from pip._vendor.packaging.requirements import InvalidRequirement
     from pip._vendor.packaging.requirements import Requirement
+    from pip._vendor.packaging.utils import InvalidSdistFilename
+    from pip._vendor.packaging.utils import InvalidWheelFilename
     from pip._vendor.packaging.utils import parse_wheel_filename
     from pip._vendor.packaging.utils import parse_sdist_filename
 except ModuleNotFoundError:
@@ -80,30 +85,39 @@ def _get_dist_name(target: str) -> Optional[str]:
         at_name, target = at_match.groups()
     else:
         at_name = None
-    if os.path.isfile(target):
-        filename = Path(target).name
-        return _get_dist_name_from_filename(filename)
-    elif os.path.isdir(target):  #
-        if at_name:
-            return at_name
-        else:
-            warn(warn_msg, UserWarning)
-            return None  # TODO setup.py egg_info?
-    elif _is_valid_url(target):
+
+    if _is_valid_url(target):
         parsed_url = urlparse(target)
         if egg_match := re.search(r"egg=([A-Za-z0-9-_.]+)", parsed_url.fragment):
             return egg_match.group(1)
         elif re.search(r"\.(?:whl|tar\.gz|zip)$", parsed_url.path):
             filename = Path(parsed_url.path).name
-            return _get_dist_name_from_filename(filename)
+            try:
+                return _get_dist_name_from_filename(filename)
+            except (InvalidSdistFilename, InvalidWheelFilename):
+                return at_name
         else:
             if at_name:
                 return at_name
             else:
                 warn(warn_msg, UserWarning)
                 return None  # TODO  Can this be determined further?
+    elif re.search(r"\.(?:whl|tar\.gz|zip)$", target):
+        filename = Path(target).name
+        try:
+            return _get_dist_name_from_filename(filename)
+        except (InvalidSdistFilename, InvalidWheelFilename):
+            return at_name
     else:
-        return Requirement(target).name
+        try:
+            return Requirement(target).name
+        except InvalidRequirement:
+            # Probably a directory
+            if at_name:
+                return at_name
+            else:
+                warn(warn_msg, UserWarning)
+                return None  # TODO setup.py egg_info?
 
 
 def _get_dist_name_from_filename(filename):
@@ -125,6 +139,11 @@ def _is_valid_url(url):
         )
     except:  # noqa: E722
         return False
+
+
+def _get_requirements_from_file(filename):
+    """Parse requirements.txt file into individual requirements."""
+    return [r.requirement for r in parse_requirements(filename, PipSession())]
 
 
 def install(*args, **kwargs) -> subprocess.CompletedProcess:
@@ -164,7 +183,11 @@ def install(*args, **kwargs) -> subprocess.CompletedProcess:
     _check_for_pipfiles()
     cli_args = _build_install_cmd(*args, **kwargs)
     # use pip internals to isolate package names
-    _, req_targets = install_cmd.parse_args(cli_args)
+    req_args, req_targets = install_cmd.parse_args(cli_args)
+    print(req_args, type(req_args), dir(req_args))
+    if req_args.requirements:  # -r requirements.txt
+        reqs_from_file = _get_requirements_from_file(req_args.requirements)
+        req_targets.extend(reqs_from_file)
     assert req_targets[:2] == ["pip", "install"]
     already_loaded = _check_if_already_loaded(req_targets[2:])
     print("Trying  ", " ".join(cli_args), "  ...", file=sys.stderr)
