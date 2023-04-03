@@ -4,6 +4,7 @@ import pytest
 
 from pipster.install import _build_install_cmd
 from pipster.install import _get_dist_name
+from pipster.install import _get_requirements_from_file
 from pipster import install
 
 TEST_PKG = "realpython-reader"
@@ -14,6 +15,8 @@ TEST_MODULE = "reader"
 WHEEL_PATH = "tests/data/packages/"
 WHEEL1 = WHEEL_PATH + "simplewheel-1.0-py2.py3-none-any.whl"
 WHEEL2 = WHEEL_PATH + "simplewheel-2.0-py2.py3-none-any.whl"
+
+REQ_FILE = "tests/data/requirements.txt"
 
 
 """
@@ -137,6 +140,39 @@ def test__get_dist_name():
     ]
     for url in urls:
         assert _get_dist_name(url) == "MyProject"
+    assert _get_dist_name("MyProject @ path/to/MyProject_directory") == "MyProject"
+    assert _get_dist_name("MyProject @ /path/to/MyProject_directory") == "MyProject"
+
+
+def test__get_requirements_from_file():
+    reqs = _get_requirements_from_file(REQ_FILE)
+    assert reqs == [
+        "pytest",
+        "pytest-cov",
+        "beautifulsoup4",
+        "docopt == 0.6.1",
+        'requests [security] >= 2.8.1, == 2.8.* ; python_version < "2.7"',
+        "urllib3 @ https://github.com/urllib3/urllib3/archive/refs/tags/1.26.8.zip",
+        "MyProject~=4.0.1",
+        "other-pkg",
+        "MyProject>=4.0.0",
+        "./downloads/numpy-1.9.2-cp34-none-win32.whl",
+        "http://wxpython.org/Phoenix/snapshot-builds/wxPython_Phoenix-3.0.3.dev1820+49a8884-cp34-none-win_amd64.whl",
+    ]
+    dist_names = [_get_dist_name(r) for r in reqs]
+    assert dist_names == [
+        "pytest",
+        "pytest-cov",
+        "beautifulsoup4",
+        "docopt",
+        "requests",
+        "urllib3",
+        "MyProject",
+        "other-pkg",
+        "MyProject",
+        "numpy",
+        "wxpython-phoenix",
+    ]
 
 
 def test_build_install_cmd_underscores():
