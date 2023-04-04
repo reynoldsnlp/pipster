@@ -64,14 +64,22 @@ def _get_deps(path, include_stdlib=False):
         install_lines = [
             line
             for line in f
-            if "import" in line and re.search(r"#\s+install\s+", line)
+            if "import" in line and re.search(r"#\s*(?:skip\s+)?install\s+", line)
         ]
+    skips = {
+        dep
+        for dep in deps
+        for line in install_lines
+        if f" {dep}" in line and re.search(r"#\s*skip\s+install", line)
+    }
     dep_pkg_list = []
     for dep in deps:
+        if dep in skips:
+            continue
         pkgs = [
             m.group(1).split()
             for line in install_lines
-            if dep in line
+            if f" {dep}" in line
             and (m := re.search(r"#\s+install\s+([\s0-9A-Za-z-_.]+)", line))
         ]
         pkgs = set(pkg for group in pkgs for pkg in group if pkg)  # flatten pkgs
@@ -91,8 +99,9 @@ def autoinstall(interactive=True, **kwargs):
 
     If the package/distribution name to be installed is different from the
     module name (e.g. scikit-learn vs sklearn), the package name(s) should be
-    provided in a comment beginning with install:
-    `import sklearn  # install scikit-learn`.
+    provided in an in-line comment beginning with install:
+    `import sklearn  # install scikit-learn`. To ignore an import, add an
+    in-line comment beginning with `# skip install`.
 
     Other than `interactive`, all keyword arguments are passed to pip, e.g.
     `autoinstall(user=True, upgrade=True, index_url='https://example.com')`.
