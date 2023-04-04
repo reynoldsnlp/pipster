@@ -23,7 +23,7 @@ try:
     from pip._vendor.packaging.utils import parse_sdist_filename
 except ModuleNotFoundError:
     raise ModuleNotFoundError(
-        "Please install pip for the current " "interpreter: (%s)." % sys.executable
+        f"Please install pip for the current interpreter: {sys.executable}"
     )
 
 __all__ = ["install"]
@@ -32,15 +32,15 @@ __all__ = ["install"]
 install_cmd = InstallCommand(name="dummy", summary="Provides parse_args.")
 
 
-def _check_for_pipfiles():
+def _check_for_pipfiles(depth=3):  # `3` taken from pipenv.utils.pipfile.find_pipfile()
     pipfiles = []
-    for i in range(4):  # TODO: 4 is completely arbitrary here. improve?
+    for i in range(depth):
         pipfiles.extend(glob((".." + os.sep) * i + "Pipfile"))
     if pipfiles:
         pipfiles = [os.path.abspath(f) for f in pipfiles]
         msg = (
             "Warning: the following Pipfiles will be bypassed by "
-            "pipster.install:\n\t" + "\n\t".join(pipfiles)
+            f"pipster.install: ({' '.join(pipfiles)})"
         )
         warn(msg, stacklevel=2)
 
@@ -79,6 +79,7 @@ def _get_dist_name(target: str) -> Optional[str]:
         f"If {target} was already imported, python must be restarted "
         "to import the newly installed version."
     )
+
     # parse `pip install "asdf @ ..."`
     at_match = re.match(r"([A-Za-z0-9.-_]+)\s+@\s+(.+)", target)
     if at_match:
@@ -112,12 +113,12 @@ def _get_dist_name(target: str) -> Optional[str]:
         try:
             return Requirement(target).name
         except InvalidRequirement:
-            # Probably a directory
+            # Probably a directory. TODO use `os.path.isdir` and `setup.py egg_info`?
             if at_name:
                 return at_name
             else:
                 warn(warn_msg, UserWarning)
-                return None  # TODO setup.py egg_info?
+                return None
 
 
 def _get_dist_name_from_filename(filename):
