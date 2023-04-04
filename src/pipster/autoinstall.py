@@ -3,6 +3,7 @@ import distutils.sysconfig as sysconfig
 import inspect
 import os
 import re
+import subprocess
 import sys
 
 from . import install
@@ -10,7 +11,7 @@ from . import install
 __all__ = ["autoinstall"]
 
 
-def get_stdlib_module_names():
+def _get_stdlib_module_names():
     if sys.version_info >= (3, 10):
         return sys.stdlib_module_names
     else:
@@ -38,7 +39,7 @@ def get_stdlib_module_names():
 
 
 def _get_deps(path, include_stdlib=False):
-    stdlib_module_names = get_stdlib_module_names()
+    stdlib_module_names = _get_stdlib_module_names()
     with open(path) as f:
         root = ast.parse(f.read(), path)
 
@@ -78,32 +79,81 @@ def _get_deps(path, include_stdlib=False):
     return dep_pkg_list
 
 
-def autoinstall(interactive=True, upgrade=False):
+def _is_installed(pkg):
+    """Check whether pkg is already installed."""
+    result = subprocess.run([sys.executable, "-m", "pip", "show", pkg])
+    return not result.returncode
+
+
+def autoinstall(interactive=True, **kwargs):
+    """Install all packages imported in the module where this function is
+    called.  Packages already installed will be skipped unless upgrade=True.
+
+    If the package/distribution name to be installed is different from the
+    module name (e.g. scikit-learn vs sklearn), the package name(s) should be
+    provided in a comment beginning with install:
+    `import sklearn  # install scikit-learn`.
+
+    Other than `interactive`, all keyword arguments are passed to pip, e.g.
+    `autoinstall(user=True, upgrade=True, index_url='https://example.com')`.
+
+    This function does not look for transitive dependencies. Only import
+    statements in the module where this function is called are considered.
+    """
+    try:
+        upgrade = kwargs["upgrade"]
+    except KeyError:
+        upgrade = False
+
     filename = inspect.stack()[1].filename
     deps = _get_deps(filename)
-
     if not interactive:
-        print(f'autoinstall is installing the following: {" ".join(deps)} ...')
-        install(*deps, upgrade=upgrade)
+        targets = []
+        for mod, pkgs in deps:
+            if pkgs:
+                targets.extend(pkgs)
+            else:
+                targets.append(mod)
+        if not upgrade:
+            orig_targets, targets, installed_tgts = targets, [], []
+            for t in orig_targets:
+                if _is_installed(t):
+                    installed_tgts.append(t)
+                else:
+                    targets.append(t)
+            print(f'{" ".join(installed_tgts)} already installed.', file=sys.stderr)
+        print(f'autoinstall is installing {" ".join(targets)} ...', file=sys.stderr)
+        install(*deps, **kwargs)
     else:
         for mod, pkgs in deps:
-            # TODO: check if dependency is installed
-            print(f"{mod} is not installed.")
+            if pkgs:
+                targets = pkgs
+            else:
+                targets = [mod]
+
+            if not upgrade and all(_is_installed(pkg) for pkg in targets):
+                print(f"{' '.join(targets)} already installed.", file=sys.stderr)
+                continue
+
             while True:
-                resp = input(f"Install {mod}? (Y)es / (N)o / (C)ustomize name  ")
+                resp = input(
+                    f"Install {' '.join(targets)}? (Y)es / (N)o / (C)ustomize name  "
+                )  # noqa: E501
                 if re.search(r"y(?:es)?", resp, flags=re.I):
-                    print(f"Installing {mod}...", file=sys.stderr)
-                    install(mod, upgrade=upgrade)
+                    print(f"Installing {' '.join(targets)}...", file=sys.stderr)
+                    install(*targets, **kwargs)
                     break
                 elif re.search(r"no?", resp, flags=re.I):
-                    print("Okay. Taking no action.")
                     break
                 elif re.search(r"c(?:ustom)?", resp, flags=re.I):
                     pkg_name = input(
-                        f"What package would you like to install instead of {mod}? "
+                        f"What package(s) would you like to install instead of {' '.join(targets)}? "  # noqa: E501
                     )
                     print(f"Installing {pkg_name}...", file=sys.stderr)
-                    install(pkg_name, upgrade=upgrade)
+                    install(*pkg_name.split(), **kwargs)
                     break
                 else:
-                    print('Invalid input. Type "y", "n", or "c" and press [enter].')
+                    print(
+                        'Invalid input. Type "y", "n", or "c" and press [enter].',
+                        file=sys.stderr,
+                    )
