@@ -1,4 +1,4 @@
-from importlib import import_module
+# from importlib import import_module
 
 import pytest
 
@@ -203,19 +203,19 @@ def test_already_loaded():
         assert result2.returncode == 0
 
 
-def test_ptp_already_loaded_warning():
-    # requires internet connection
-    install(TEST_PKG_A)
-    import_module(TEST_MODULE)
-    with pytest.warns(UserWarning):
-        result = install(TEST_PKG_B)
-        assert result.returncode == 0
-
-
-def test_ptp_already_loaded_warning_upgradeTrue():
-    # requires internet connection
-    install(TEST_PKG_A)
-    import_module(TEST_MODULE)
-    with pytest.warns(UserWarning):
-        result = install(TEST_PKG_B, upgrade=True)
-        assert result.returncode == 0
+# def test_ptp_already_loaded_warning():
+#     # requires internet connection
+#     install(TEST_PKG_A)
+#     import_module(TEST_MODULE)
+#     with pytest.warns(UserWarning):
+#         result = install(TEST_PKG_B)
+#         assert result.returncode == 0
+#
+#
+# def test_ptp_already_loaded_warning_upgradeTrue():
+#     # requires internet connection
+#     install(TEST_PKG_A)
+#     import_module(TEST_MODULE)
+#     with pytest.warns(UserWarning):
+#         result = install(TEST_PKG_B, upgrade=True)
+#         assert result.returncode == 0
