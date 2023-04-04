@@ -1,5 +1,4 @@
 import ast
-import distutils.sysconfig as sysconfig
 import inspect
 import os
 import re
@@ -15,6 +14,9 @@ def _get_stdlib_module_names():
     if sys.version_info >= (3, 10):
         return sys.stdlib_module_names
     else:
+        # The following import causes warnings in python >= 3.10
+        import distutils.sysconfig as sysconfig
+
         stdlib_module_names = set()
         std_lib = sysconfig.get_python_lib(standard_lib=True)
 
