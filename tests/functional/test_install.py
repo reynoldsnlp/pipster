@@ -1,11 +1,9 @@
 # from importlib import import_module
 
-import pytest
-
 from pipster.install import _build_install_cmd
 from pipster.install import _get_dist_name
 from pipster.install import _get_requirements_from_file
-from pipster import install
+from pipster.install import _install
 
 TEST_PKG = "realpython-reader"
 TEST_PKG_A = TEST_PKG + "==0.0.1"
@@ -22,8 +20,8 @@ REQ_FILE = "tests/data/requirements.txt"
 """
 TODO implement the following tests
 
-install(wheel1, target="/tmp//")
-install(wheel2, target="/tmp//", upgrade=True)
+_install(wheel1, target="/tmp//")
+_install(wheel2, target="/tmp//", upgrade=True)
 """
 
 
@@ -187,35 +185,36 @@ def test_build_install_cmd_underscores():
 
 
 def test_install_simplewheel():
-    result1 = install(WHEEL1)
+    result1 = _install(WHEEL1)
     assert result1.returncode == 0
-    result2 = install(WHEEL2)
+    result2 = _install(WHEEL2)
     assert result2.returncode == 0
 
 
-def test_already_loaded():
-    result1 = install(WHEEL1)
+def test_already_loaded(capsys):
+    result1 = _install(WHEEL1)
     assert result1.returncode == 0
     import simplewheel  # type: ignore  # noqa: F401
 
-    with pytest.warns(UserWarning):
-        result2 = install(WHEEL2)
-        assert result2.returncode == 0
+    result2 = _install(WHEEL2)
+    captured = capsys.readouterr()
+    assert result2.returncode == 0
+    assert "WARNING" in captured.out
 
 
 # def test_ptp_already_loaded_warning():
 #     # requires internet connection
-#     install(TEST_PKG_A)
+#     _install(TEST_PKG_A)
 #     import_module(TEST_MODULE)
 #     with pytest.warns(UserWarning):
-#         result = install(TEST_PKG_B)
+#         result = _install(TEST_PKG_B)
 #         assert result.returncode == 0
 #
 #
 # def test_ptp_already_loaded_warning_upgradeTrue():
 #     # requires internet connection
-#     install(TEST_PKG_A)
+#     _install(TEST_PKG_A)
 #     import_module(TEST_MODULE)
 #     with pytest.warns(UserWarning):
-#         result = install(TEST_PKG_B, upgrade=True)
+#         result = _install(TEST_PKG_B, upgrade=True)
 #         assert result.returncode == 0
