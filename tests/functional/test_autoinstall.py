@@ -1,4 +1,4 @@
-from pipster.autoinstall import _get_deps
+from pipster._experimental.autoinstall import _get_deps
 
 
 def test_get_deps():
