@@ -147,7 +147,12 @@ def _get_requirements_from_file(filename):
     return [r.requirement for r in parse_requirements(filename, PipSession())]
 
 
-def install(*args, **kwargs) -> subprocess.CompletedProcess:
+def install(*args, **kwargs) -> None:
+    """Wrap _install to hide CompletedProcess in REPL output."""
+    result = _install(*args, **kwargs)  # noqa: F841
+
+
+def _install(*args, **kwargs) -> subprocess.CompletedProcess:
     """Install packages into the current environment.
 
     Equivalent examples of command-line pip and pipster are grouped below.
@@ -185,7 +190,6 @@ def install(*args, **kwargs) -> subprocess.CompletedProcess:
     cli_args = _build_install_cmd(*args, **kwargs)
     # use pip internals to isolate package names
     req_args, req_targets = install_cmd.parse_args(cli_args)
-    print(req_args, type(req_args), dir(req_args))
     if req_args.requirements:  # -r requirements.txt
         reqs_from_file = _get_requirements_from_file(req_args.requirements)
         req_targets.extend(reqs_from_file)
@@ -195,10 +199,10 @@ def install(*args, **kwargs) -> subprocess.CompletedProcess:
     cli_cmd = [sys.executable, "-m"] + cli_args
     result = subprocess.run(cli_cmd, check=True)
     if result.returncode == 0 and already_loaded:
-        warn(
-            "WARNING! The following modules were already loaded. Restart "
-            f'python to see changes:  {", ".join(already_loaded)}',
-            UserWarning,
+        print(
+            "\n\033[0;31mWARNING:\033[00m The following modules were already loaded. "
+            "Restart python to see changes: "
+            f"\033[0;32m{', '.join(already_loaded)}\033[00m\n"
         )
     return result
 
