@@ -170,21 +170,18 @@ def _install(*args, **kwargs) -> subprocess.CompletedProcess:
 
     $ pip install --user --upgrade some_pkg
     >>> install('--user', '--upgrade', 'some_pkg')
-    >>> install(*'--user --upgrade some_pkg'.split())
+    >>> install('some_pkg', user=True, upgrade=True)
 
     If preferred, keyword-value arguments can also be used:
 
     $ pip install -r requirements.txt
-    >>> install(r='requirements.txt')
     >>> install('-r', 'requirements.txt')
-    >>> install(*'-r requirements.txt'.split())
+    >>> install(r='requirements.txt')
 
     $ pip install --no-index --find-links /local/dir/ some_pkg
-    # Note the use of '_' in the following keyword example.
-    >>> install('--no-index', 'some_pkg', find_links='/local/dir/')
     >>> install('--no-index', '--find-links', '/local/dir/', 'some_pkg')
-    >>> install(*'--no-index --find-links /local/dir/ some_pkg'.split())
-
+    # Note the use of '_' in the following keyword example.
+    >>> install('some_pkg', index=False, find_links='/local/dir/')
     """
     _check_for_pipfiles()
     cli_args = _build_install_cmd(*args, **kwargs)
