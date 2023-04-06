@@ -44,17 +44,13 @@ WARNING: The following modules were already loaded. Restart python to see change
 requests
 ```
 
-<div style="-moz-border-radius: 6px; -webkit-border-radius: 6px; background-color: #f0f7fb;
-     border: solid 1px #3498db; border-radius: 6px; line-height: 18px;
-     overflow: hidden; padding: 12px;"><b>Note:</b>
-The developers of `pipster` hope that this tool will eventually be integrated
-into `pip` so that every Python installation has this capability. The
-maintainers of `pip` have
-[expressed interest](https://github.com/pypa/pip/issues/5069) in making this
-happen, but first `pipster` needs to be extensively tested and used in real
-life. By sharing this tool with others, and reporting bugs/issues if they
-arise, you are helping us achieve that goal.
-</div>
+**Note:** The developers of `pipster` hope that this tool will eventually be
+integrated into `pip` so that every Python installation has this capability.
+The maintainers of `pip` have [expressed
+interest](https://github.com/pypa/pip/issues/5069) in making this happen, but
+first `pipster` needs to be extensively tested and used in real life. By
+sharing this tool with others, and reporting bugs/issues if they arise, you are
+helping us achieve that goal.
 
 ## Installation
 
