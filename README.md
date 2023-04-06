@@ -44,6 +44,14 @@ WARNING: The following modules were already loaded. Restart python to see change
 requests
 ```
 
+**Note:** The developers of `pipster` hope that this tool will eventually be
+integrated into `pip` so that every Python installation has this capability.
+The maintainers of `pip` have [expressed
+interest](https://github.com/pypa/pip/issues/5069) in making this happen, but
+first `pipster` needs to be extensively tested and used in real life. By
+sharing this tool with others, and reporting bugs/issues if they arise, you are
+helping us achieve that goal.
+
 ## Installation
 
 To install `pipster`, run the following in your terminal (you may need to
@@ -82,6 +90,11 @@ install("pip install --user --upgrade pkg1 pkg2 pkg3")
 You can also pass any number of target packages along with keyword arguments
 corresponding to commandline options for `pip install`. Note that the python
 keyword arguments use `_` instead of `-`.
+
+The `pipster.install()` function does not validate which options are available
+in the commandline. If you give it arguments that are not valid commandline
+options, then it will attempt to run `pip install` with those options, and
+`pip` will return an error.
 
 #### Boolean options
 
@@ -132,7 +145,7 @@ install('pkg', v=3)     # pip install -vvv pkg
 
 Any option that is assigned the value `None` is omitted from the command. This
 feature facilitates simpler logic in preparing keyword arguments
-programmatically by setting a default value of `None`.
+programmatically.
 
 ```python
 user = None
