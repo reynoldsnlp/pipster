@@ -67,7 +67,7 @@ subprocess.check_call(cmd)
 
 The `install()` function can be called in two ways.
 
-#### Copy-paste `pip install ...`
+### Copy-paste `pip install ...`
 
 If you give `install()` a single string that begins with `pip install`, then it
 will run that exact command as if it were given at the command line.
@@ -77,13 +77,13 @@ install("pip install some_package")`
 install("pip install --user --upgrade pkg1 pkg2 pkg3")
 ```
 
-#### Python function API
+### Python function API
 
 You can also pass any number of target packages along with keyword arguments
 corresponding to commandline options for `pip install`. Note that the python
 keyword arguments use `_` instead of `-`.
 
-##### Boolean options
+#### Boolean options
 
 Most boolean commandline options are set by giving `<option>=True`.
 
@@ -100,7 +100,7 @@ install("pkg", color=False)  # pip install --no-color pkg
 install("pkg", deps=False)   # pip install --no-deps pkg
 ```
 
-##### Key-value options
+#### Key-value options
 
 Usually, key-value options are set using as string: `<option>="<value>"`.
 
@@ -116,7 +116,7 @@ the value given should be a list of strings: `<option>=["<val1>", "<val2>"]`.
 install(r=["reqs1.txt", "reqs2.txt"])  # pip install -r reqs1.txt -r reqs2.txt
 ```
 
-##### Additive options
+#### Additive options
 
 Some commandline options are additive (notably `-q` and `-v`), and can be used
 up to 3 times. These can be set using either an integer or True.
@@ -128,7 +128,7 @@ install('pkg', v=2)     # pip install -vv pkg
 install('pkg', v=3)     # pip install -vvv pkg
 ```
 
-##### Omitting options
+#### Omitting options
 
 Any option that is assigned the value `None` is omitted from the command. This
 feature facilitates simpler logic in preparing keyword arguments
