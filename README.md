@@ -119,7 +119,7 @@ install(r=["reqs1.txt", "reqs2.txt"])  # pip install -r reqs1.txt -r reqs2.txt
 #### Additive options
 
 Some commandline options are additive (notably `-q` and `-v`), and can be used
-up to 3 times. These can be set using either an integer or True.
+up to 3 times. These can be set using either an integer or `True`.
 
 ```python
 install('pkg', v=True)  # pip install -v pkg
