@@ -48,11 +48,12 @@ requests
      border: solid 1px #3498db; border-radius: 6px; line-height: 18px;
      overflow: hidden; padding: 12px;"><b>Note:</b>
 The developers of `pipster` hope that this tool will eventually be integrated
-into `pip` so that every Python installation has this capability. [The
-maintainers of `pip` have expressed cautious interest in making this
-happen](https://github.com/pypa/pip/issues/5069), but first `pipster` needs to
-be extensively tested and used in real life. By sharing this tool with others,
-and reporting bugs/issues if they arise, you are helping us achieve that goal.
+into `pip` so that every Python installation has this capability. The
+maintainers of `pip` have
+[expressed interest](https://github.com/pypa/pip/issues/5069) in making this
+happen, but first `pipster` needs to be extensively tested and used in real
+life. By sharing this tool with others, and reporting bugs/issues if they
+arise, you are helping us achieve that goal.
 </div>
 
 ## Installation
