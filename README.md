@@ -27,12 +27,32 @@ that you still can't import it because it was installed for the wrong
 interpreter. By installing from inside python, you ensure that it will be
 available to import from that instance of python.
 
+When possible you should install packages _before_ importing them. If you
+re-install, upgrade, or downgrade a package _after_ it has already been
+imported, `pipster` will do its best to detect this and issue a warning that
+Python should be restarted for changes to be available.
+
+```python
+>>> from pipster import install
+>>> import requests
+>>> requests.__version__
+'2.27.0'
+>>> install('requests', upgrade=True)
+...
+Successfully installed requests-2.28.2
+
+WARNING: The following modules were already loaded. Restart python to see changes:
+requests
+```
+
 ## Installation
 
-Run the following in your terminal.
+To install `pipster`, run the following in your terminal (you may need to
+replace `python` with the name of the executable you use to run Python, such as
+`python3`, `python3.11`, etc.):
 
 ```
-$ pip install --user pipster
+$ python -m pip install --user pipster
 ```
 
 ...and if that's not working, you can run this in a python script or console:
@@ -53,7 +73,7 @@ The `install` function can be called in two ways.
 If you give `install()` a single string that begins with `pip install`, then it
 will run that exact command as if it were given at the command line.
 
-#### `install('useful_package1', 'useful_package2', user=True, ...)`
+#### `install('useful_package1', 'useful_package2', upgrade=True, ...)`
 
 You can also pass any number of target packages along with commandline
 arguments or keyword arguments corresponding to commandline parameters for `pip
