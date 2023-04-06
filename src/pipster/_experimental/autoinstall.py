@@ -5,7 +5,7 @@ import re
 import subprocess
 import sys
 
-from . import install
+from .. import install
 
 __all__ = ["autoinstall"]
 

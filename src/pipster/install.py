@@ -170,21 +170,18 @@ def _install(*args, **kwargs) -> subprocess.CompletedProcess:
 
     $ pip install --user --upgrade some_pkg
     >>> install('--user', '--upgrade', 'some_pkg')
-    >>> install(*'--user --upgrade some_pkg'.split())
+    >>> install('some_pkg', user=True, upgrade=True)
 
     If preferred, keyword-value arguments can also be used:
 
     $ pip install -r requirements.txt
-    >>> install(r='requirements.txt')
     >>> install('-r', 'requirements.txt')
-    >>> install(*'-r requirements.txt'.split())
+    >>> install(r='requirements.txt')
 
     $ pip install --no-index --find-links /local/dir/ some_pkg
-    # Note the use of '_' in the following keyword example.
-    >>> install('--no-index', 'some_pkg', find_links='/local/dir/')
     >>> install('--no-index', '--find-links', '/local/dir/', 'some_pkg')
-    >>> install(*'--no-index --find-links /local/dir/ some_pkg'.split())
-
+    # Note the use of '_' in the following keyword example.
+    >>> install('some_pkg', index=False, find_links='/local/dir/')
     """
     _check_for_pipfiles()
     cli_args = _build_install_cmd(*args, **kwargs)
@@ -201,8 +198,8 @@ def _install(*args, **kwargs) -> subprocess.CompletedProcess:
     if result.returncode == 0 and already_loaded:
         print(
             "\n\033[0;31mWARNING:\033[00m The following modules were already loaded. "
-            "Restart python to see changes: "
-            f"\033[0;32m{', '.join(already_loaded)}\033[00m\n"
+            "Restart python to see changes:\n"
+            f"\033[0;32m{'os.linesep'.join(already_loaded)}\033[00m\n"
         )
     return result
 
@@ -215,40 +212,50 @@ def _build_install_cmd(*args, **kwargs) -> List[str]:
         # Keyword arguments are translated to CLI options
         for raw_k, v in kwargs.items():
             k = raw_k.replace("_", "-")  # Python identifiers -> CLI long names
-            append_value = isinstance(v, str)
-            if append_value:
-                # When arg value is str, append both it and option to CLI args
-                append_option = True
-                if not v:
-                    raise ValueError(
-                        "Empty string passed as value for option " "{}".format(k)
-                    )
+            if len(k) == 1:
+                option = "-" + k
             else:
-                # assume the value indicates whether to include a boolean flag.
-                # None->omit, true->include, false->include negated
-                append_option = v is not None
+                option = "--" + k
+
+            if v is None:
+                # None->omit
+                continue
+            elif isinstance(v, bool):
+                # true->include, false->include negated
                 if k.startswith("no-"):
                     # suggest `some-option=True` instead of
                     # `no-some-option=False`
-                    raw_suffix = raw_k[3:]
-                    msg_template = "Rather than '{}={!r}', " "try '{{}}={{!r}}'".format(
-                        raw_k, v
+                    sugg_k = raw_k[3:]
+                    raise ValueError(
+                        f"Rather than '{raw_k}={v!r}', try '{sugg_k}={not v!r}'"
                     )
-                    if append_option:
-                        suggestion = msg_template.format(raw_suffix, not v)
-                    else:
-                        suggestion = msg_template.format(raw_suffix, None)
-                    raise ValueError(suggestion)
-                if append_option and not v:
-                    k = "no-" + k
-            if append_option:
-                if len(k) == 1:  # short flag
-                    option = "-" + k
-                else:  # long flag
-                    option = "--" + k
+                if not v:
+                    option = option.replace("--", "--no-")
                 cli_args.append(option)
-                if append_value:
-                    cli_args.append(v)
+            elif isinstance(v, str):
+                if not v:
+                    raise ValueError(f"Empty string passed as value: ({raw_k}={v!r}")
+                cli_args.extend([option, v])
+            # Handle additive args (indicated by int value, e.g. q=3 -> -qqq)
+            elif isinstance(v, int):  # v=1 (i.e. v=True) already handled above
+                if len(k) == 1:
+                    cli_args.append(f"-{k * v}")
+                else:
+                    cli_args.extend([option] * v)
+                continue
+            # Handle repeatable key-value arguments
+            elif isinstance(v, list) or isinstance(v, tuple):
+                if not all(isinstance(s, str) for s in v):
+                    raise ValueError(
+                        f"Not all elements of list/tuple are strings ({raw_k}={v!r})"
+                    )
+                for each_val in v:
+                    cli_args.extend([option, each_val])
+            else:
+                raise ValueError(
+                    "Value must be of type bool/str/int/list/tuple/None, "
+                    f"not {type(v)} (from {raw_k}={v!r})"
+                )
         # Positional arguments are passed directly as CLI arguments
         cli_args += args
     return cli_args
