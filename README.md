@@ -102,7 +102,7 @@ install("pkg", deps=False)   # pip install --no-deps pkg
 
 #### Key-value options
 
-Usually, key-value options are set using as string: `<option>="<value>"`.
+Usually, key-value options are set using a string: `<option>="<value>"`.
 
 ```python
 install(r="requirements.txt")         # pip install -r requirements.txt
