@@ -94,10 +94,11 @@ in the command line. If you give it arguments that are not valid command-line
 options, then it will attempt to run `pip install` with those options, and
 `pip` will return an error.
 
-The [CLI options reference](cli_options.md) shows every possible command-line
-option and its corresponding expression as a keyword argument for `install()`.
-The principles behind these corresponding expressions are layed out in the
-following sections.
+The [CLI options
+reference](https://github.com/reynoldsnlp/pipster/blob/maincli_options.md)
+shows every possible command-line option and its corresponding expression as a
+keyword argument for `install()`.  The principles behind these corresponding
+expressions are layed out in the following sections.
 
 #### Boolean options
 

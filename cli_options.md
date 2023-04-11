@@ -1,6 +1,6 @@
 # CLI options
 
-| CLI option | arguments for `pipster.install() |
+| [CLI option](https://pip.pypa.io/en/stable/cli/pip_install/#options) | arguments for `pipster.install() |
 | ---------- | ---------- |
 | `--abi <abi>` | `abi="<abi>"` |
 | `--abi <abi1> --abi <abi2>` | `abi=["<abi1>", "<abi2>"]` |
