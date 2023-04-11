@@ -73,7 +73,7 @@ subprocess.check_call(cmd)
 
 The `install()` function can be called in two ways.
 
-### Copy-paste `pip install ...`
+### 1. Copy-paste `pip install ...`
 
 If you give `install()` a single string that begins with `pip install`, then it
 will run that exact command as if it were given at the command line.
@@ -83,7 +83,7 @@ install("pip install some_package")`
 install("pip install --user --upgrade pkg1 pkg2 pkg3")
 ```
 
-### Python function API
+### 2. Python function API
 
 You can also pass any number of target packages along with keyword arguments
 corresponding to command-line options for `pip install`. Note that the python
