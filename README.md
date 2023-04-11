@@ -45,9 +45,7 @@ requests
 ```
 
 **Note:** The developers of `pipster` hope that this tool will eventually be
-integrated into `pip` so that every Python installation has this capability.
-The maintainers of `pip` have [expressed
-interest](https://github.com/pypa/pip/issues/5069) in making this happen, but
+integrated into `pip` so that this functionality becomes ubiquitous.  However,
 first `pipster` needs to be extensively tested and used in real life. By
 sharing this tool with others, and reporting bugs/issues if they arise, you are
 helping us achieve that goal.
@@ -88,21 +86,26 @@ install("pip install --user --upgrade pkg1 pkg2 pkg3")
 ### Python function API
 
 You can also pass any number of target packages along with keyword arguments
-corresponding to commandline options for `pip install`. Note that the python
+corresponding to command-line options for `pip install`. Note that the python
 keyword arguments use `_` instead of `-`.
 
 The `pipster.install()` function does not validate which options are available
-in the commandline. If you give it arguments that are not valid commandline
+in the command line. If you give it arguments that are not valid command-line
 options, then it will attempt to run `pip install` with those options, and
 `pip` will return an error.
+
+The [CLI options reference](cli_options.md) shows every possible command-line
+option and its corresponding expression as a keyword argument for `install()`.
+The principles behind these corresponding expressions are layed out in the
+following sections.
 
 #### Boolean options
 
 Most boolean commandline options are set by giving `<option>=True`.
 
 ```python
-install("pkg", user=True)     # pip install --user pkg
-install("pkg", upgrade=True)  # pip install --upgrade pkg
+install("pkg", user=True)             # pip install --user pkg
+install("pkg", "pkg2", upgrade=True)  # pip install --upgrade pkg pkg2
 ```
 
 Boolean commandline options that begin with `--no-`, such as `--no-color` are

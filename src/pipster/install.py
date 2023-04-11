@@ -192,7 +192,7 @@ def _install(*args, **kwargs) -> subprocess.CompletedProcess:
         req_targets.extend(reqs_from_file)
     assert req_targets[:2] == ["pip", "install"]
     already_loaded = _check_if_already_loaded(req_targets[2:])
-    print("Trying  ", " ".join(cli_args), "  ...", file=sys.stderr)
+    print("Running `", " ".join(cli_args), "`  ...", file=sys.stderr)
     cli_cmd = [sys.executable, "-m"] + cli_args
     result = subprocess.run(cli_cmd, check=True)
     if result.returncode == 0 and already_loaded:
