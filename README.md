@@ -1,4 +1,4 @@
-# pipster
+# pipster: The pythonic way to `pip install`
 
 <div align="center">
     <img src="https://raw.githubusercontent.com/reynoldsnlp/pipster/main/images/pipster_138x250.jpg" alt="Pipster logo" width="138">
@@ -22,14 +22,18 @@ Install packages using `pip` from inside a python script or console:
 >>> install("some_package")
 ```
 
+* Simple, fool-proof installation method for learners
+* No command-line access or skills needed.
+
 This tool solves the age-old problem of `pip install`ing a package only to find
 that you still can't import it because it was installed for the wrong
 interpreter. By installing from inside python, you ensure that it will be
 available to import from that instance of python.
 
-If you re-install, upgrade, or downgrade a package _after_ it has already been
-imported, `pipster` will do its best to detect this and issue a warning that
-Python should be restarted for changes to be available.
+We recommend restarting python after installing a package. If you re-install,
+upgrade, or downgrade a package _after_ it has already been imported, `pipster`
+will do its best to detect this and issue a warning that Python should be
+restarted for changes to be available.
 
 ```python
 >>> from pipster import install
@@ -102,14 +106,14 @@ expressions are layed out in the following sections.
 
 #### Boolean options
 
-Most boolean commandline options are set by giving `<option>=True`.
+Most boolean command-line options are set by giving `<option>=True`.
 
 ```python
 install("pkg", user=True)             # pip install --user pkg
 install("pkg", "pkg2", upgrade=True)  # pip install --upgrade pkg pkg2
 ```
 
-Boolean commandline options that begin with `--no-`, such as `--no-color` are
+Boolean command-line options that begin with `--no-`, such as `--no-color` are
 set by removing the `no-` prefix and using `<option>=False`.
 
 ```python
@@ -135,7 +139,7 @@ install(r=["reqs1.txt", "reqs2.txt"])  # pip install -r reqs1.txt -r reqs2.txt
 
 #### Additive options
 
-Some commandline options are additive (notably `-q` and `-v`), and can be used
+Some command-line options are additive (notably `-q` and `-v`), and can be used
 up to 3 times. These can be set using either an integer or `True`.
 
 ```python
