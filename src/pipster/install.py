@@ -26,10 +26,27 @@ except ModuleNotFoundError:
         f"Please install pip for the current interpreter: {sys.executable}"
     )
 
+from ._formatter import PythonHelpFormatter
+
+
 __all__ = ["install"]
+install_cmd = InstallCommand(name="Install", summary="Provides parse_args.")
 
 
-install_cmd = InstallCommand(name="dummy", summary="Provides parse_args.")
+def _pip_install_help_with_python_kwargs():
+    """Prepare 'appendix' to add to docstring of install()."""
+    w = 72  # width
+    msg1 = "THE FOLLOWING IS DYNAMICALLY ADAPTED FROM `pip install --help`,"
+    msg2 = "SHOWING PYTHON KEYWORD ARGUMENTS INSTEAD OF COMMAND-LINE OPTIONS."
+    msg = "\n".join(
+        ["", "=" * w, "=" * w, f"{msg1:^{w}}", f"{msg2:^{w}}", "=" * w, "=" * w, "", ""]
+    )
+
+    help = install_cmd.parser.format_help(PythonHelpFormatter())
+    # remove CLI Usage section
+    help = re.sub(r"\s*Usage:.*?\n(?=Description:\n)", "", help, flags=re.S)
+
+    return msg + help
 
 
 def _check_for_pipfiles(depth=3):  # `3` taken from pipenv.utils.pipfile.find_pipfile()
@@ -148,12 +165,8 @@ def _get_requirements_from_file(filename):
 
 
 def install(*args, **kwargs) -> None:
-    """Wrap _install to hide CompletedProcess in REPL output."""
-    result = _install(*args, **kwargs)  # noqa: F841
-
-
-def _install(*args, **kwargs) -> subprocess.CompletedProcess:
-    """Install packages into the current environment.
+    """
+    Install packages into the current environment.
 
     Equivalent examples of command-line pip and pipster are grouped below.
 
@@ -183,6 +196,14 @@ def _install(*args, **kwargs) -> subprocess.CompletedProcess:
     # Note the use of '_' in the following keyword example.
     >>> install('some_pkg', index=False, find_links='/local/dir/')
     """
+    _ = _install(*args, **kwargs)
+
+
+install.__doc__ += _pip_install_help_with_python_kwargs()
+
+
+def _install(*args, **kwargs) -> subprocess.CompletedProcess:
+    """Allows install() to hide CompletedProcess in REPL output."""
     _check_for_pipfiles()
     cli_args = _build_install_cmd(*args, **kwargs)
     # use pip internals to isolate package names
