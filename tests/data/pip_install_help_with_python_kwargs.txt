@@ -89,7 +89,14 @@ Install Options:
   root="<dir>"                Install everything relative to this
                               alternate root directory.
   prefix="<dir>"              Installation prefix where lib, bin and
-                              other top-level folders are placed
+                              other top-level folders are placed. Note
+                              that the resulting installation may
+                              contain scripts and other resources which
+                              reference the Python interpreter of pip,
+                              and not that of ```prefix```. See also the
+                              ```python``` option if the intention is to
+                              install packages into another (possibly
+                              pip-free) environment.
   src="<dir>"                 Directory to check out editable projects
                               into. The default in a virtualenv is
                               "<venv path>/src". The default for global
@@ -129,19 +136,12 @@ Install Options:
                               is used.
   break_system_packages=True  Allow pip to modify an EXTERNALLY-MANAGED
                               Python installation
-  config_settings="<settings>"
+  C="<settings>", config_settings="<settings>"
                               Configuration settings to be passed to the
                               PEP 517 build backend. Settings take the
                               form KEY=VALUE. Use multiple
                               `config_settings` options to pass multiple
                               keys to the backend.
-  install_option="<options>",
-  install_option=["<options1>", "<options2>"]
-                              This option is deprecated. Using this
-                              option with location-changing options may
-                              cause unexpected behavior. Use pip-level
-                              options like `user`, `prefix`, `root`, and
-                              `target`.
   global_option="<options>",
   global_option=["<options1>", "<options2>"]
                               Extra global options to be supplied to the
@@ -243,6 +243,11 @@ General Options:
                               levels).
   log="<path>"                Path to a verbose appending log.
   input=False                 Disable prompting for input.
+  keyring_provider="<keyring_provider>"
+                              Enable the credential lookup via the
+                              keyring library if user input is allowed.
+                              Specify which mechanism to use [disabled,
+                              import, subprocess]. (default: disabled)
   proxy="<proxy>"             Specify a proxy in the form
                               scheme://[user:passwd@]proxy.server:port.
   retries="<retries>"         Maximum number of retries each connection
