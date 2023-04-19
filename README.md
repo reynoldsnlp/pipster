@@ -101,8 +101,10 @@ options, then it will attempt to run `pip install` with those options, and
 The [CLI options
 reference](https://github.com/reynoldsnlp/pipster/blob/main/cli_options.md)
 shows every possible command-line option and its corresponding expression as a
-keyword argument for `install()`.  The principles behind these corresponding
-expressions are layed out in the following sections.
+keyword argument for `install()`. The keyword arguments are also shown in the
+docstring, which can be seen by running `help(install)` (type `q` to exit). The
+principles used to convert command-line options to python keyword arguments are
+layed out in the following sections.
 
 #### Boolean options
 
