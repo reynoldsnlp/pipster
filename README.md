@@ -18,8 +18,8 @@
 Install packages using `pip` from inside a python script or console:
 
 ```python
->>> from pipster import install
->>> install("some_package")
+>>> import pipster
+>>> pipster.install("some_package")
 ```
 
 * Simple, fool-proof installation method for learners
@@ -30,23 +30,9 @@ that you still can't import it because it was installed for the wrong
 interpreter. By installing from inside python, you ensure that it will be
 available to import from that instance of python.
 
-We recommend restarting python after installing a package. If you re-install,
-upgrade, or downgrade a package _after_ it has already been imported, `pipster`
-will do its best to detect this and issue a warning that Python should be
-restarted for changes to be available.
-
-```python
->>> from pipster import install
->>> import requests
->>> requests.__version__
-'2.27.0'
->>> install("requests", upgrade=True)
-...
-Successfully installed requests-2.28.2
-
-WARNING: The following modules were already loaded. Restart python to see changes:
-requests
-```
+We recommend using `pipster.install()` either in a separate python script or an
+interactive REPL. If using an interactive REPL, we recommend restarting
+python after installation.
 
 **Note:** The developers of `pipster` hope that this tool will eventually be
 integrated into `pip` so that this functionality becomes ubiquitous.  However,
@@ -162,6 +148,25 @@ user = None
 if <logical test>:
   user = True
 install('pkg', user=user)
+```
+
+## Installing modules that were already imported
+
+If you re-install, upgrade, or downgrade a package _after_ it has already been
+imported, `pipster` will do its best to detect this and issue a warning that
+Python should be restarted for changes to be available.
+
+```python
+>>> import pipster
+>>> import requests
+>>> requests.__version__
+'2.27.0'
+>>> pipster.install("requests", upgrade=True)
+...
+Successfully installed requests-2.28.2
+
+WARNING: The following modules were already loaded. Restart python to see changes:
+requests
 ```
 
 ## Pipfiles
