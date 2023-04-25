@@ -1,9 +1,9 @@
 # from importlib import import_module
 import re
 
-from pipster.install import _build_cmd
-from pipster.install import _get_dist_name
-from pipster.install import _get_requirements_from_file
+from pipster.utils import build_cmd
+from pipster.utils import get_dist_name
+from pipster.utils import get_requirements_from_file
 from pipster.install import _install
 
 TEST_PKG = "realpython-reader"
@@ -54,7 +54,7 @@ def test_build_cmd_plain():
         ),  # noqa: E501
     ]
     for arg, output in io_pairs:
-        cmd = _build_cmd("install", arg)
+        cmd = build_cmd("install", arg)
         assert cmd == output
 
 
@@ -66,15 +66,15 @@ def test_build_cmd_kwarg():
     assert len(option_lines) == len(table_lines) - 2
     for line in option_lines:
         cli_opt, kwarg = re.match(row_re, line).groups()
-        evaluated = eval(f"_build_cmd('install', {kwarg})")
+        evaluated = eval(f"build_cmd('install', {kwarg})")
         assert " ".join(evaluated[2:]) == cli_opt
 
 
 def test__get_dist_name():
-    assert _get_dist_name(WHEEL1) == "simplewheel"
-    assert _get_dist_name(WHEEL2) == "simplewheel"
-    assert _get_dist_name(TEST_PKG_A) == "realpython-reader"
-    assert _get_dist_name(TEST_PKG_B) == "realpython-reader"
+    assert get_dist_name(WHEEL1) == "simplewheel"
+    assert get_dist_name(WHEEL2) == "simplewheel"
+    assert get_dist_name(TEST_PKG_A) == "realpython-reader"
+    assert get_dist_name(TEST_PKG_B) == "realpython-reader"
     urls = [  # from https://pip.pypa.io/en/stable/topics/vcs-support/
         "git+ssh://git.example.com/MyProject#egg=MyProject",
         "git+file:///home/user/projects/MyProject#egg=MyProject",
@@ -135,13 +135,13 @@ def test__get_dist_name():
         "vcs+protocol://repo_url/#subdirectory=pkg_dir&egg=MyProject&",
     ]
     for url in urls:
-        assert _get_dist_name(url) == "MyProject"
-    assert _get_dist_name("MyProject @ path/to/MyProject_directory") == "MyProject"
-    assert _get_dist_name("MyProject @ /path/to/MyProject_directory") == "MyProject"
+        assert get_dist_name(url) == "MyProject"
+    assert get_dist_name("MyProject @ path/to/MyProject_directory") == "MyProject"
+    assert get_dist_name("MyProject @ /path/to/MyProject_directory") == "MyProject"
 
 
 def test__get_requirements_from_file():
-    reqs = _get_requirements_from_file(REQ_FILE)
+    reqs = get_requirements_from_file(REQ_FILE)
     assert reqs == [
         "pytest",
         "pytest-cov",
@@ -155,7 +155,7 @@ def test__get_requirements_from_file():
         "./downloads/numpy-1.9.2-cp34-none-win32.whl",
         "http://wxpython.org/Phoenix/snapshot-builds/wxPython_Phoenix-3.0.3.dev1820+49a8884-cp34-none-win_amd64.whl",
     ]
-    dist_names = [_get_dist_name(r) for r in reqs]
+    dist_names = [get_dist_name(r) for r in reqs]
     assert dist_names == [
         "pytest",
         "pytest-cov",
@@ -173,7 +173,7 @@ def test__get_requirements_from_file():
 
 def test_build_cmd_underscores():
     # find_links -> --find-links
-    assert _build_cmd("install", "some_pkg", find_links="/local/dir/") == [
+    assert build_cmd("install", "some_pkg", find_links="/local/dir/") == [
         "pip",
         "install",
         "--find-links",

@@ -1,4 +1,4 @@
-from pipster.install import _pip_help_with_python_kwargs
+from pipster.utils import pip_help_with_python_kwargs
 from pipster.install import install_cmd
 
 
@@ -15,6 +15,6 @@ def test__pip_help_with_python_kwargs():
     """
     with open("tests/data/pip_install_help_with_python_kwargs.txt") as f:
         assert (
-            _pip_help_with_python_kwargs("install", install_cmd).strip()
+            pip_help_with_python_kwargs("install", install_cmd).strip()
             == f.read().strip()
         )
