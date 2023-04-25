@@ -33,16 +33,16 @@ __all__ = ["install"]
 install_cmd = InstallCommand(name="Install", summary="Provides parse_args.")
 
 
-def _pip_install_help_with_python_kwargs():
-    """Prepare 'appendix' to add to docstring of install()."""
+def _pip_help_with_python_kwargs(subcommand, cmd_obj):
+    """Prepare 'appendix' to add to docstring of subcommand wrapper function."""
     w = 72  # width
-    msg1 = "THE FOLLOWING IS DYNAMICALLY ADAPTED FROM `pip install --help`,"
+    msg1 = f"THE FOLLOWING IS DYNAMICALLY ADAPTED FROM `pip {subcommand} --help`,"
     msg2 = "SHOWING PYTHON KEYWORD ARGUMENTS INSTEAD OF COMMAND-LINE OPTIONS."
     msg = "\n".join(
         ["", "=" * w, "=" * w, f"{msg1:^{w}}", f"{msg2:^{w}}", "=" * w, "=" * w, "", ""]
     )
 
-    help = install_cmd.parser.format_help(PythonHelpFormatter())
+    help = cmd_obj.parser.format_help(PythonHelpFormatter())
     # remove CLI Usage section
     help = re.sub(r"\s*Usage:.*?\n(?=Description:\n)", "", help, flags=re.S)
 
@@ -199,13 +199,13 @@ def install(*args, **kwargs) -> None:
     _ = _install(*args, **kwargs)
 
 
-install.__doc__ += _pip_install_help_with_python_kwargs()
+install.__doc__ += _pip_help_with_python_kwargs("install", install_cmd)
 
 
 def _install(*args, **kwargs) -> subprocess.CompletedProcess:
     """Allows install() to hide CompletedProcess in REPL output."""
     _check_for_pipfiles()
-    cli_args = _build_install_cmd(*args, **kwargs)
+    cli_args = _build_cmd("install", *args, **kwargs)
     # use pip internals to isolate package names
     req_args, req_targets = install_cmd.parse_args(cli_args)
     if req_args.requirements:  # -r requirements.txt
@@ -225,11 +225,11 @@ def _install(*args, **kwargs) -> subprocess.CompletedProcess:
     return result
 
 
-def _build_install_cmd(*args, **kwargs) -> List[str]:
-    if len(args) == 1 and args[0].startswith("pip install "):
+def _build_cmd(subcommand: str, *args, **kwargs) -> List[str]:
+    if len(args) == 1 and args[0].startswith(f"pip {subcommand} "):
         return shlex.split(args[0])
     else:
-        cli_args = ["pip", "install"]
+        cli_args = ["pip", subcommand]
         # Keyword arguments are translated to CLI options
         for raw_k, v in kwargs.items():
             k = raw_k.replace("_", "-")  # Python identifiers -> CLI long names

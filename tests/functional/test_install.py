@@ -1,7 +1,7 @@
 # from importlib import import_module
 import re
 
-from pipster.install import _build_install_cmd
+from pipster.install import _build_cmd
 from pipster.install import _get_dist_name
 from pipster.install import _get_requirements_from_file
 from pipster.install import _install
@@ -26,7 +26,7 @@ _install(wheel2, target="/tmp//", upgrade=True)
 """
 
 
-def test_build_install_cmd_plain():
+def test_build_cmd_plain():
     io_pairs = [
         ("pip install some_pkg", ["pip", "install", "some_pkg"]),
         ("some_pkg", ["pip", "install", "some_pkg"]),
@@ -54,11 +54,11 @@ def test_build_install_cmd_plain():
         ),  # noqa: E501
     ]
     for arg, output in io_pairs:
-        cmd = _build_install_cmd(arg)
+        cmd = _build_cmd("install", arg)
         assert cmd == output
 
 
-def test_build_install_cmd_kwarg():
+def test_build_cmd_kwarg():
     row_re = r"\|\s*`(.*?)`\s*\|\s*`(.*?)`\s*\|\s*$"
     with open("cli_options.md") as f:
         table_lines = [line for line in f if line.startswith("|")]
@@ -66,7 +66,7 @@ def test_build_install_cmd_kwarg():
     assert len(option_lines) == len(table_lines) - 2
     for line in option_lines:
         cli_opt, kwarg = re.match(row_re, line).groups()
-        evaluated = eval(f"_build_install_cmd({kwarg})")
+        evaluated = eval(f"_build_cmd('install', {kwarg})")
         assert " ".join(evaluated[2:]) == cli_opt
 
 
@@ -171,9 +171,9 @@ def test__get_requirements_from_file():
     ]
 
 
-def test_build_install_cmd_underscores():
+def test_build_cmd_underscores():
     # find_links -> --find-links
-    assert _build_install_cmd("some_pkg", find_links="/local/dir/") == [
+    assert _build_cmd("install", "some_pkg", find_links="/local/dir/") == [
         "pip",
         "install",
         "--find-links",
