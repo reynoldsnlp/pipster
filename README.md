@@ -17,7 +17,7 @@
 
 Install packages using `pip` from inside a python script or console:
 
-```python
+```pycon
 >>> import pipster
 >>> pipster.install("some_package")
 ```
@@ -46,8 +46,8 @@ To install `pipster`, run the following in your terminal (you may need to
 replace `python` with the name of the executable you use to run Python, such as
 `python3`, `python3.11`, etc.):
 
-```
-$ python -m pip install --user pipster
+```bash
+$ python -m pip install pipster
 ```
 
 ...and if that's not working, you can run this in a python script or console:
@@ -55,7 +55,7 @@ $ python -m pip install --user pipster
 ```python
 import subprocess
 import sys
-cmd = [sys.executable,  "-m", "pip", "install", "--user", "pipster"]
+cmd = [sys.executable,  "-m", "pip", "install", "pipster"]
 subprocess.check_call(cmd)
 ```
 
@@ -156,7 +156,7 @@ If you re-install, upgrade, or downgrade a package _after_ it has already been
 imported, `pipster` will do its best to detect this and issue a warning that
 Python should be restarted for changes to be available.
 
-```python
+```pycon
 >>> import pipster
 >>> import requests
 >>> requests.__version__
