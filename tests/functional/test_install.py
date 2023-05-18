@@ -60,7 +60,7 @@ def test_build_cmd_plain():
 
 def test_build_cmd_kwarg():
     row_re = r"\|\s*`(.*?)`\s*\|\s*`(.*?)`\s*\|\s*$"
-    with open("cli_options.md") as f:
+    with open("install_cli_options.md") as f:
         table_lines = [line for line in f if line.startswith("|")]
     option_lines = [line for line in table_lines if re.match(row_re, line)]
     assert len(option_lines) == len(table_lines) - 2

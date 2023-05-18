@@ -84,8 +84,8 @@ in the command line. If you give it arguments that are not valid command-line
 options, then it will attempt to run `pip install` with those options, and
 `pip` will return an error.
 
-The [CLI options
-reference](https://github.com/reynoldsnlp/pipster/blob/main/cli_options.md)
+The [Install CLI options
+reference](https://github.com/reynoldsnlp/pipster/blob/main/install_cli_options.md)
 shows every possible command-line option and its corresponding expression as a
 keyword argument for `install()`. The keyword arguments are also shown in the
 docstring, which can be seen by running `help(install)` (type `q` to exit). The
