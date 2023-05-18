@@ -59,6 +59,57 @@ cmd = [sys.executable,  "-m", "pip", "install", "pipster"]
 subprocess.check_call(cmd)
 ```
 
+## Suggested workflows
+
+The following demonstrates ways that you can use `pipster` in your own
+workflow.  More information about using advanced arguments is in the [Usage
+section](#usage) below.
+
+### In a python console/REPL
+
+To use `pipster` in a python console (i.e., REPL), first open a python terminal
+using the same interpreter being used by your IDE. For example, in VS Code,
+from the Command Palette, select `Python: Start REPL`. Then, type the following
+code into your REPL, replacing `some_pkg` with the package you want to install:
+
+```pycon
+>>> import pipster
+>>> pipster.install("some_pkg")
+```
+
+### In a separate python installation script (install\_dependencies.py)
+
+Write a separate python script to install packages before running your code.
+For example, if your python script imports `numpy` and `pandas`, then you would
+write a new file named `install_dependencies.py` with the following:
+
+```python
+import pipster
+pipster.install("numpy", "pandas")
+```
+
+Save the file, then run it.
+
+### Code header
+
+You can include `pipster` installation at the top of your own python script,
+before imports. One drawback of this method is that `pipster` will try to
+re-install packages every time you run your code. However, you can comment
+these lines out after packages have been successfully installed. For example,
+if your python script imports `numpy` and `pandas`, then the top of your script
+would look something like this:
+
+```python
+# Comment the following pipster lines after dependencies have successfully
+# installed.
+import pipster
+pipster.install("numpy", "pandas")
+
+import numpy as np
+import pandas as pd
+...
+```
+
 ## Usage
 
 The `install()` function can be called in two ways.
