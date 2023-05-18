@@ -76,7 +76,7 @@ def _get_deps(path, include_stdlib=False):
     }
     dep_pkg_list = []
     for dep in deps:
-        if dep in skips:
+        if dep in skips or dep == "pipster":
             continue
         pkgs = [
             m.group(1).split()
@@ -91,7 +91,11 @@ def _get_deps(path, include_stdlib=False):
 
 def _is_installed(pkg):
     """Check whether pkg is already installed."""
-    result = subprocess.run([sys.executable, "-m", "pip", "show", pkg])
+    result = subprocess.run(
+        [sys.executable, "-m", "pip", "show", pkg],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
     return not result.returncode
 
 
