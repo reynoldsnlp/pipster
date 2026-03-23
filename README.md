@@ -1,5 +1,7 @@
 # pipster: The pythonic way to `pip install`
 
+> ARCHIVED: We recommend using Astral's `uv` and (with support for script dependencies!).
+
 <div align="center">
     <img src="https://raw.githubusercontent.com/reynoldsnlp/pipster/main/images/pipster_138x250.jpg" alt="Pipster logo" width="138">
 <br/>
